@@ -1,6 +1,7 @@
 <script setup>
 
 import MainLayout from "../components/layout/MainLayout.vue"
+import Hero from "../components/home/Hero.vue"
 
 </script>
 
@@ -8,7 +9,7 @@ import MainLayout from "../components/layout/MainLayout.vue"
 
 <MainLayout>
 
-<h1>Home</h1>
+<Hero />
 
 </MainLayout>
 
