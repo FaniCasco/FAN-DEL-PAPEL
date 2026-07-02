@@ -1,19 +1,38 @@
-:root{
+:root {
+  /* Paleta Etsy-style de Fan del Papel */
+  --color-primary: #C05C3E;       /* Terracota */
+  --color-on-primary: #ffffff;
+  /* User requested pink primary */
+  --color-primary: #f8799f;
+  --color-secondary: #6E8B7E;     /* Verde salvia */
+  --color-accent: #D4A373;        /* Dorado */
+  --color-background: #FCFBF7;    /* Cream lino */
+  --color-bg-primary: #ffffff;    /* Fondo principal de tarjetas y contenedores */
+  --color-primary-hover: #e86f92; /* Hover para el rosa */
+  --color-text: #2E2724;          /* Café Espresso */
+  --color-gray: #6B5E59;          /* Café Espresso suave (antes gray) */
+  --color-white: #FFFFFF;
+  
+  /* Acentos claros para hovers, tags y fondos alternativos */
+  --color-bg-sage: #F0F4F2;
+  --color-bg-terracotta: #F9EFEA;
+  --color-bg-gold: #FAF4EB;
 
-    --color-primary:#E97AB3;
+  /* Bordes y formas */
+  --radius-sm: 8px;
+  --radius: 16px;                 /* Estilo artesanal amigable */
+  --radius-lg: 28px;
+  --radius-full: 9999px;
 
-    --color-secondary:#F2C230;
+  /* Sombras orgánicas y sutiles */
+  --shadow-sm: 0 2px 10px rgba(46, 39, 36, 0.03);
+  --shadow: 0 8px 30px rgba(46, 39, 36, 0.05); /* Sobrescribe shadow anterior con una orgánica */
+  --shadow-lg: 0 16px 45px rgba(46, 39, 36, 0.08);
 
-    --color-background:#FFF9D9;
+  /* Fuentes del sistema */
+  --font-title: 'Playfair Display', Georgia, serif;
+  --font-body: 'Outfit', sans-serif;
 
-    --color-text:#2F2F2F;
-
-    --color-gray:#707070;
-
-    --color-white:#FFFFFF;
-
-    --radius:18px;
-
-    --shadow:0 8px 20px rgba(0,0,0,.08);
-
+  /* Animaciones y Transiciones */
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }

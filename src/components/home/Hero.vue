@@ -3,19 +3,16 @@
 
     <div class="hero-content">
 
-      <span class="tag">
-        💌 Cartas y papelería personalizada
-      </span>
-
-      <h1>
-        Regalá emociones
-        <br>
-        hechas en papel
-      </h1>
-
-      <p>
-        Cartas, sobres y diseños personalizados para sorprender a alguien especial.
-      </p>
+      <div class="hero-brand">
+        <span class="tag">
+          💌 Cartas y papelería personalizada
+        </span>
+        <h1>
+          Escribí mensajes
+          <br>
+          con diseños únicos para animar a otros
+        </h1>
+      </div>
 
       <RouterLink
         to="/catalogo"
@@ -27,18 +24,14 @@
     </div>
 
     <div class="hero-image">
-
-      <img
-        src="../../assets/images/logo.png"
-        alt="Fan del Papel"
-      >
-
+      <img :src="logo" alt="Fan del Papel" class="hero-side-logo" />
     </div>
 
   </section>
 </template>
 
 <script setup>
+import logo from '@/assets/images/logo.png'
 </script>
 
 <style scoped>
@@ -85,8 +78,22 @@ h1{
 
     line-height:1.1;
 
-    margin-bottom:25px;
+    margin: 0;
 
+}
+
+.hero-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+}
+
+.hero-side-logo {
+    width: 320px;
+    height: 320px;
+    object-fit: contain;
 }
 
 p{
@@ -133,11 +140,17 @@ p{
 
     justify-content:center;
 
+    align-items:center;
+
 }
 
 .hero-image img{
 
-    width:90%;
+    width:auto;
+
+    max-width:100%;
+
+    height:auto;
 
 }
 
