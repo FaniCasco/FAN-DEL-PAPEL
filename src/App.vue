@@ -33,7 +33,7 @@ const showSidebar = computed(() => route.meta.showCategorySidebar === true)
 .app-body {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
+  gap: var(--spacing-base);
   width: 100%;
 }
 
@@ -42,7 +42,7 @@ const showSidebar = computed(() => route.meta.showCategorySidebar === true)
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 40px var(--spacing-base);
   animation: fadeIn 0.6s ease-out;
 }
 
@@ -62,8 +62,14 @@ const showSidebar = computed(() => route.meta.showCategorySidebar === true)
 }
 
 @media (max-width: 768px) {
+  .app-body {
+    flex-direction: column;
+    gap: var(--spacing-base);
+    padding: 0 var(--spacing-base);
+  }
+  
   .main-content {
-    padding: 24px 16px;
+    padding: 16px 0;
   }
 }
 </style>

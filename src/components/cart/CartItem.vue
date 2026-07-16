@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
+
 import { useCartStore } from '@/stores/cart';
 
 const props = defineProps({ item: Object });

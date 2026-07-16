@@ -6,6 +6,26 @@ const STORAGE_KEY = 'fan_del_papel_products'
 const CATEGORY_STORAGE_KEY = 'fan_del_papel_categories'
 const SUBCATEGORY_STORAGE_KEY = 'fan_del_papel_subcategories'
 
+const safeLocalStorageSet = (key, value) => {
+  try {
+    if (typeof window === 'undefined') return { ok: false, error: 'no-window' }
+    window.localStorage.setItem(key, value)
+    return { ok: true }
+  } catch (error) {
+    // Suele fallar por cuota de localStorage (ej: imágenes en base64)
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('fan-del-papel:persist-error', {
+            detail: { key, message: error?.message || String(error) },
+          })
+        )
+      }
+    } catch (_) {}
+    return { ok: false, error }
+  }
+}
+
 const cloneProducts = (items = []) =>
   items.map((product) => ({
     ...product,
@@ -19,6 +39,11 @@ const createSlug = (value = '') =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
+
+const safePersist = (key, data) => {
+  if (typeof window === 'undefined') return { ok: true }
+  return safeLocalStorageSet(key, JSON.stringify(data))
+}
 
 export const useProductsStore = defineStore('products', () => {
   const products = ref(cloneProducts(initialProducts))
@@ -106,9 +131,7 @@ export const useProductsStore = defineStore('products', () => {
   watch(
     products,
     (updatedProducts) => {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts))
-      }
+      safePersist(STORAGE_KEY, updatedProducts)
     },
     { deep: true }
   )
@@ -116,37 +139,21 @@ export const useProductsStore = defineStore('products', () => {
   watch(
     categoryList,
     (updatedCategories) => {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(updatedCategories))
-      }
+      safePersist(CATEGORY_STORAGE_KEY, updatedCategories)
     },
     { deep: true }
   )
 
-  const persistProducts = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(products.value))
-    }
-  }
+  const persistProducts = () => safePersist(STORAGE_KEY, products.value)
 
-  const persistCategories = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categoryList.value))
-    }
-  }
+  const persistCategories = () => safePersist(CATEGORY_STORAGE_KEY, categoryList.value)
 
-  const persistSubcategories = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(SUBCATEGORY_STORAGE_KEY, JSON.stringify(subcategoryMap.value))
-    }
-  }
+  const persistSubcategories = () => safePersist(SUBCATEGORY_STORAGE_KEY, subcategoryMap.value)
 
   watch(
     subcategoryMap,
     (updatedMap) => {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(SUBCATEGORY_STORAGE_KEY, JSON.stringify(updatedMap))
-      }
+      safePersist(SUBCATEGORY_STORAGE_KEY, updatedMap)
     },
     { deep: true }
   )
@@ -188,10 +195,10 @@ export const useProductsStore = defineStore('products', () => {
 
     products.value.unshift(newProduct)
     syncCategoryListFromProducts()
-    persistProducts()
+    const persistResult = persistProducts()
     persistCategories()
     persistSubcategories()
-    return newProduct
+    return { product: newProduct, persistResult }
   }
 
   function updateProduct(id, updates = {}) {
@@ -224,10 +231,10 @@ export const useProductsStore = defineStore('products', () => {
 
     products.value.splice(index, 1, nextProduct)
     syncCategoryListFromProducts()
-    persistProducts()
+    const persistResult = persistProducts()
     persistCategories()
     persistSubcategories()
-    return nextProduct
+    return { product: nextProduct, persistResult }
   }
 
   function addCategory(name = '') {

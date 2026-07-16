@@ -44,7 +44,7 @@ import logo from '@/assets/images/logo.png'
 
     align-items:center;
 
-    min-height:75vh;
+    min-block-size:75vh;
 
     padding:80px;
 
@@ -52,7 +52,7 @@ import logo from '@/assets/images/logo.png'
 
 .hero-content{
 
-    width:50%;
+    inline-size:50%;
 
 }
 
@@ -66,7 +66,7 @@ import logo from '@/assets/images/logo.png'
 
     border-radius:30px;
 
-    margin-bottom:25px;
+    margin-block-end:25px;
 
     font-weight:600;
 
@@ -86,13 +86,13 @@ h1{
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin-block-end: 1.5rem;
     align-items: flex-start;
 }
 
 .hero-side-logo {
-    width: 320px;
-    height: 320px;
+    inline-size: 320px;
+    block-size: 320px;
     object-fit: contain;
 }
 
@@ -102,9 +102,9 @@ p{
 
     color:var(--color-gray);
 
-    margin-bottom:40px;
+    margin-block-end:40px;
 
-    max-width:550px;
+    max-inline-size:550px;
 
 }
 
@@ -134,7 +134,7 @@ p{
 
 .hero-image{
 
-    width:40%;
+    inline-size:40%;
 
     display:flex;
 
@@ -146,11 +146,11 @@ p{
 
 .hero-image img{
 
-    width:auto;
+    inline-size:auto;
 
-    max-width:100%;
+    max-inline-size:100%;
 
-    height:auto;
+    block-size:auto;
 
 }
 

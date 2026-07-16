@@ -26,7 +26,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.meta && to.meta.requiresAdmin) {
     const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
-    if (isAdmin) return next();
+    if (isAdmin) return (next());
     return next({ name: 'AdminLogin', query: { redirect: to.fullPath } });
   }
   next();

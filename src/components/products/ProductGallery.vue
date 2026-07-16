@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { ref, defineProps } from 'vue';
+import { ref, watch } from 'vue';
 
-defineProps<{ images: string[] }>();
+const props = defineProps<{ images: string[] }>();
 
 const selectedIndex = ref(0);
+
+// Resetear índice cuando cambia el array de imágenes (ej: al navegar entre productos)
+// Sin esto, si el índice queda fuera de rango, images[selectedIndex] es undefined
+// y la imagen principal no se renderiza.
+watch(
+  () => props.images,
+  () => { selectedIndex.value = 0; },
+  { immediate: false }
+);
+
 function select(i: number) { selectedIndex.value = i; }
 </script>
 

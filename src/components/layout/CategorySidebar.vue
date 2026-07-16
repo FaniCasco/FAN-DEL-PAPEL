@@ -88,30 +88,52 @@ function selectSubcategory(subcategory: string) {
 
 <style scoped>
 .category-sidebar {
-  background: var(--color-bg-primary);
-  border: 1px solid rgba(192, 92, 62, 0.15);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-lg);
-  padding: 1rem;
+  padding: var(--spacing-base);
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 96px;
   max-height: calc(100vh - 140px);
   overflow-y: auto;
+  min-width: 260px;
+  width: 260px;
 }
+
+@media (max-width: 768px) {
+  .category-sidebar {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+    margin-bottom: 8px;
+  }
+}
+
+.sidebar-heading {
+  margin-bottom: 16px;
+}
+
 .sidebar-heading p,
 .eyebrow {
   margin: 0;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: var(--color-secondary);
+  color: var(--color-primary);
   font-weight: 700;
 }
+
 .sidebar-heading h2 {
   margin: 0.2rem 0 0;
-  font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  color: var(--color-text);
 }
+
 .category-button,
 .subcategory-button {
   width: 100%;
@@ -119,38 +141,50 @@ function selectSubcategory(subcategory: string) {
   border: none;
   background: transparent;
   padding: 0.8rem 0.75rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   color: var(--color-text);
   transition: var(--transition-smooth);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-family: var(--font-body);
 }
+
 .category-button:hover,
 .subcategory-button:hover {
-  background: var(--color-bg-secondary);
+  background: rgba(248, 121, 159, 0.05);
 }
+
 .category-button.active {
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
+
+.category-button.active .count {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .subcategory-list {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   padding-left: 0.75rem;
+  margin-top: 4px;
 }
+
 .subcategory-button.active {
-  background: rgba(192, 92, 62, 0.12);
+  background: rgba(248, 121, 159, 0.1);
   color: var(--color-primary);
   font-weight: 600;
 }
+
 .category-group {
   margin-bottom: 0.75rem;
 }
+
 .count {
-  color: var(--color-secondary);
+  color: var(--color-text-muted);
   font-size: 0.85rem;
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useProductsStore } from '@/stores/products'
 import { useRouter } from 'vue-router'
 
@@ -7,6 +7,7 @@ const productsStore = useProductsStore()
 const router = useRouter()
 const selectedProductId = ref(null)
 const editingProduct = ref(null)
+const persistError = ref('')
 const form = ref({
   nombre: '',
   slug: '',
@@ -17,8 +18,13 @@ const form = ref({
   stock: 0,
   destacado: false,
   nuevo: false,
-  imagenes: [''],
 })
+
+// Lista unificada de imágenes del producto.
+// Cada entrada es un string (data URL o URL externa).
+// La posición 0 siempre es la imagen principal.
+const productImageList = ref([])
+const isUploadingImages = ref(false)
 
 const products = computed(() => productsStore.products)
 const categories = computed(() => productsStore.categories)
@@ -74,18 +80,80 @@ function logout() {
   router.push({ name: 'AdminLogin' })
 }
 
-function handleFileUpload(event) {
-  const files = event.target.files
-  if (!files || !files.length) return
-  Array.from(files).forEach((file) => {
+async function compressImageFile(file, { maxSide = 1400, quality = 0.82, type = 'image/webp' } = {}) {
+  // Reduce tamaño antes de persistir en localStorage (evita superar cuota)
+  const dataUrl = await new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => {
-      if (reader.result) {
-        form.value.imagenes.push(reader.result.toString())
-      }
-    }
+    reader.onload = () => resolve(String(reader.result || ''))
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo'))
     reader.readAsDataURL(file)
   })
+
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image()
+    el.onload = () => resolve(el)
+    el.onerror = () => reject(new Error('No se pudo cargar la imagen'))
+    el.src = dataUrl
+  })
+
+  const w = img.naturalWidth || img.width || 1
+  const h = img.naturalHeight || img.height || 1
+  const scale = Math.min(1, maxSide / Math.max(w, h))
+  const targetW = Math.max(1, Math.round(w * scale))
+  const targetH = Math.max(1, Math.round(h * scale))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = targetW
+  canvas.height = targetH
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return dataUrl
+
+  ctx.drawImage(img, 0, 0, targetW, targetH)
+  try {
+    return canvas.toDataURL(type, quality)
+  } catch (_) {
+    // Fallback si el browser no soporta webp/quality
+    return canvas.toDataURL('image/jpeg', 0.85)
+  }
+}
+
+async function handleFileUpload(event) {
+  const files = event.target.files
+  if (!files?.length) return
+
+  persistError.value = ''
+  isUploadingImages.value = true
+  try {
+    for (const file of Array.from(files)) {
+      const compressed = await compressImageFile(file)
+      if (compressed) productImageList.value.push(compressed)
+    }
+  } catch {
+    persistError.value = 'No se pudo procesar una de las imágenes. Probá con otra.'
+  } finally {
+    isUploadingImages.value = false
+    event.target.value = ''
+  }
+}
+
+// Mueve la imagen en `index` a la posición 0 (la hace principal)
+function setMainImage(index) {
+  if (index === 0) return
+  const [main] = productImageList.value.splice(index, 1)
+  productImageList.value.unshift(main)
+}
+
+function removeImage(index) {
+  productImageList.value.splice(index, 1)
+}
+
+// Agrega un campo para URL externa
+const newImageUrl = ref('')
+function addImageUrl() {
+  const url = newImageUrl.value.trim()
+  if (!url) return
+  productImageList.value.push(url)
+  newImageUrl.value = ''
 }
 
 function resetForm() {
@@ -99,8 +167,9 @@ function resetForm() {
     stock: 0,
     destacado: false,
     nuevo: false,
-    imagenes: [''],
   }
+  productImageList.value = []
+  newImageUrl.value = ''
 }
 
 function startCreate() {
@@ -112,6 +181,11 @@ function startCreate() {
 function startEdit(product) {
   editingProduct.value = product
   selectedProductId.value = product.id
+  // Cargar imágenes directamente en la lista unificada (sin separar por tipo)
+  productImageList.value = Array.isArray(product.imagenes)
+    ? product.imagenes.filter(Boolean)
+    : []
+  newImageUrl.value = ''
   form.value = {
     nombre: product.nombre,
     slug: product.slug,
@@ -122,32 +196,57 @@ function startEdit(product) {
     stock: product.stock,
     destacado: Boolean(product.destacado),
     nuevo: Boolean(product.nuevo),
-    imagenes: product.imagenes && product.imagenes.length ? [...product.imagenes] : [''],
   }
 }
 
 function addImageField() {
-  form.value.imagenes.push('')
+  // Mantenida por compatibilidad — ahora se usa addImageUrl()
+  addImageUrl()
 }
 
-function removeImageField(index) {
-  form.value.imagenes.splice(index, 1)
-  if (!form.value.imagenes.length) {
-    form.value.imagenes.push('')
+function removeImageField() {}
+
+async function saveProduct() {
+  if (isUploadingImages.value) {
+    persistError.value = 'Esperá a que terminen de cargar las imágenes antes de guardar.'
+    return
   }
-}
 
-function saveProduct() {
+  persistError.value = ''
+  const nombre = String(form.value.nombre).trim()
+  if (!nombre) {
+    persistError.value = 'Ingresá un nombre para el producto.'
+    return
+  }
+
   const payload = {
     ...form.value,
-    imagenes: form.value.imagenes.filter(Boolean),
+    nombre,
+    slug: form.value.slug || undefined,
+    // Filtramos strings vacíos o corruptos antes de guardar
+    imagenes: productImageList.value.filter((img) => typeof img === 'string' && img.length > 10),
   }
 
+  let result
   if (editingProduct.value) {
-    productsStore.updateProduct(editingProduct.value.id, payload)
+    result = productsStore.updateProduct(editingProduct.value.id, payload)
+    if (!result) {
+      persistError.value = 'No se encontró el producto a editar.'
+      return
+    }
+    if (!result.persistResult?.ok) {
+      persistError.value =
+        'No se pudo guardar en el navegador. Probá con imágenes más chicas o usá URLs en lugar de subir archivos.'
+      return
+    }
     saveFeedback.value = 'Producto actualizado correctamente.'
   } else {
-    productsStore.addProduct(payload)
+    result = productsStore.addProduct(payload)
+    if (!result.persistResult?.ok) {
+      persistError.value =
+        'No se pudo guardar en el navegador. Probá con imágenes más chicas o usá URLs en lugar de subir archivos.'
+      return
+    }
     saveFeedback.value = 'Producto agregado correctamente.'
   }
 
@@ -156,6 +255,19 @@ function saveProduct() {
   selectedProductId.value = null
   setTimeout(() => { saveFeedback.value = '' }, 3000)
 }
+
+function onPersistError() {
+  persistError.value =
+    'No se pudo guardar porque el almacenamiento del navegador se llenó (pasa con imágenes pesadas). Probá con menos imágenes o más livianas.'
+}
+
+onMounted(() => {
+  window.addEventListener('fan-del-papel:persist-error', onPersistError)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('fan-del-papel:persist-error', onPersistError)
+})
 
 function removeProduct(id) {
   if (confirm('¿Querés eliminar este producto?')) {
@@ -415,29 +527,49 @@ function updateCategoryName() {
 
         <div class="images-section">
           <div class="images-header">
-            <h3>Imágenes</h3>
+            <h3>Imágenes del producto</h3>
             <div class="image-actions">
               <label class="file-upload">
                 <input type="file" accept="image/*" multiple @change="handleFileUpload" />
-                Subir imágenes
+                📁 Subir desde archivo
               </label>
-              <button class="ghost" type="button" @click="addImageField">+ Agregar URL</button>
             </div>
           </div>
 
-          <div v-for="(image, index) in form.imagenes" :key="index" class="image-row">
-            <input v-model="form.imagenes[index]" placeholder="URL de la imagen" />
-            <button class="ghost" type="button" @click="removeImageField(index)">Eliminar</button>
+          <!-- Agregar imagen por URL -->
+          <div class="url-input-row">
+            <input v-model="newImageUrl" placeholder="URL de imagen (https://...)" @keyup.enter="addImageUrl" />
+            <button class="ghost" type="button" @click="addImageUrl">Agregar URL</button>
           </div>
 
-          <div v-if="form.imagenes.filter(Boolean).length" class="image-previews">
-            <h4>Previsualización</h4>
+          <!-- Lista unificada de imágenes -->
+          <div v-if="productImageList.length" class="unified-image-list">
+            <p class="images-hint">La primera imagen es la <strong>principal</strong>. Hacé click en ⭐ para cambiarla.</p>
             <div class="preview-grid">
-              <div v-for="(image, index) in form.imagenes.filter(Boolean)" :key="index" class="preview-item">
-                <img :src="image" alt="Vista previa" />
+              <div
+                v-for="(image, index) in productImageList"
+                :key="`img-${index}`"
+                class="preview-item"
+                :class="{ 'is-main': index === 0 }"
+              >
+                <div class="preview-badge" v-if="index === 0">⭐ Principal</div>
+                <img :src="image" alt="Imagen del producto" />
+                <div class="preview-controls">
+                  <button
+                    v-if="index !== 0"
+                    class="ghost small"
+                    type="button"
+                    @click="setMainImage(index)"
+                    title="Hacer imagen principal"
+                  >⭐ Principal</button>
+                  <button class="danger small" type="button" @click="removeImage(index)">Eliminar</button>
+                </div>
               </div>
             </div>
           </div>
+
+          <p v-else class="images-empty-hint">Aún no hay imágenes. Subí archivos o agregá una URL.</p>
+          <p v-if="isUploadingImages" class="form-hint">⏳ Cargando imágenes...</p>
         </div>
 
         <div class="actions">
@@ -445,6 +577,7 @@ function updateCategoryName() {
           <button type="button" v-if="editingProduct" class="danger" @click="removeProduct(editingProduct.id)">Eliminar</button>
         </div>
         <p v-if="saveFeedback" class="save-feedback">{{ saveFeedback }}</p>
+        <p v-if="persistError" class="form-error">{{ persistError }}</p>
       </div>
     </div>
   </section>
@@ -514,11 +647,22 @@ button {
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: white;
+  display: grid;
+  gap: 0.35rem;
 }
 .preview-item img {
   width: 100%;
   height: 100px;
   object-fit: cover;
+}
+.uploaded-images {
+  display: grid;
+  gap: 0.75rem;
+}
+.form-hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
 }
 .primary { background: var(--color-primary); color: white; }
 .ghost { background: var(--color-bg-secondary); color: var(--color-text); }
