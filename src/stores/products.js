@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseConfigError } from '@/lib/supabase'
 
 const CATEGORY_STORAGE_KEY = 'fan_del_papel_categories'
 const SUBCATEGORY_STORAGE_KEY = 'fan_del_papel_subcategories'
@@ -203,6 +203,9 @@ export const useProductsStore = defineStore('products', () => {
     ])
   )
 
+  const buildSupabaseError = (fallbackMessage) =>
+    supabaseConfigError || new Error(fallbackMessage)
+
   async function loadProducts() {
     if (loadPromise) return loadPromise
 
@@ -211,7 +214,7 @@ export const useProductsStore = defineStore('products', () => {
         isLoaded.value = true
         return {
           ok: false,
-          error: new Error('Supabase no esta configurado'),
+          error: buildSupabaseError('Supabase no esta configurado'),
         }
       }
 
@@ -257,7 +260,7 @@ export const useProductsStore = defineStore('products', () => {
         product: null,
         persistResult: {
           ok: false,
-          error: new Error('Supabase no esta configurado'),
+          error: buildSupabaseError('Supabase no esta configurado'),
         },
       }
     }
@@ -301,7 +304,7 @@ export const useProductsStore = defineStore('products', () => {
         product: products.value[index],
         persistResult: {
           ok: false,
-          error: new Error('Supabase no esta configurado'),
+          error: buildSupabaseError('Supabase no esta configurado'),
         },
       }
     }
@@ -351,7 +354,7 @@ export const useProductsStore = defineStore('products', () => {
         product: products.value[index],
         persistResult: {
           ok: false,
-          error: new Error('Supabase no esta configurado'),
+          error: buildSupabaseError('Supabase no esta configurado'),
         },
       }
     }
@@ -439,7 +442,7 @@ export const useProductsStore = defineStore('products', () => {
     if (!supabase) {
       return {
         ok: false,
-        error: new Error('Supabase no esta configurado'),
+        error: buildSupabaseError('Supabase no esta configurado'),
       }
     }
 

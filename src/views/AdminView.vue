@@ -53,11 +53,20 @@ const selectedCategoryForSubcategories = ref(null)
 const newSubcategory = ref('')
 const subcategoryError = ref('')
 
+function getPersistErrorMessage(error, fallback) {
+  if (!error) return fallback
+  if (typeof error === 'string') return error
+  return error.message || fallback
+}
+
 async function clearCatalog() {
   if (!confirm('Esta acción vaciará todo el catálogo y no se puede deshacer. ¿Querés continuar?')) return
   const result = await productsStore.resetToSeed()
   if (!result?.ok) {
-    persistError.value = 'No se pudo vaciar el catalogo en Supabase.'
+    persistError.value = getPersistErrorMessage(
+      result?.error,
+      'No se pudo vaciar el catalogo en Supabase.'
+    )
     return
   }
   resetForm()
@@ -228,14 +237,20 @@ async function saveProduct() {
       return
     }
     if (!result.persistResult?.ok) {
-      persistError.value = 'No se pudo guardar en Supabase.'
+      persistError.value = getPersistErrorMessage(
+        result.persistResult?.error,
+        'No se pudo guardar en Supabase.'
+      )
       return
     }
     saveFeedback.value = 'Producto actualizado correctamente.'
   } else {
     result = await productsStore.addProduct(payload)
     if (!result.persistResult?.ok) {
-      persistError.value = 'No se pudo guardar en Supabase.'
+      persistError.value = getPersistErrorMessage(
+        result.persistResult?.error,
+        'No se pudo guardar en Supabase.'
+      )
       return
     }
     saveFeedback.value = 'Producto agregado correctamente.'
@@ -264,7 +279,10 @@ async function removeProduct(id) {
   if (confirm('¿Querés eliminar este producto?')) {
     const result = await productsStore.removeProduct(id)
     if (!result?.persistResult?.ok) {
-      persistError.value = 'No se pudo eliminar en Supabase.'
+      persistError.value = getPersistErrorMessage(
+        result?.persistResult?.error,
+        'No se pudo eliminar en Supabase.'
+      )
       return
     }
     if (selectedProductId.value === id) {
