@@ -899,12 +899,16 @@ button {
   border-radius: var(--radius-sm);
   text-align: left;
   transition: var(--transition);
+  color: var(--color-text);
 }
 .product-item:hover {
   transform: translateX(2px);
 }
 .product-item.active {
   outline: 2px solid var(--color-primary);
+}
+.product-item small {
+  color: var(--color-primary-hover);
 }
 .admin-content {
   display: flex;
