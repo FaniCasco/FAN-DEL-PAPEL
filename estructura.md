@@ -1,0 +1,78 @@
+└── 📁public
+    ├── favicon.svg
+    └── icons.svg
+└── 📁dist
+    └── 📁assets
+        ├── fondobanner-DQB7iplr.png
+        ├── index-B4hSmyCw.css
+        ├── index-BzeNoqoy.js
+        ├── logo-BrGbefSt.png
+    ├── favicon.svg
+    ├── icons.svg
+    └── index.html
+└── 📁recursos
+    └── 📁catalogo
+    └── 📁hero
+    └── 📁logo
+    └── 📁mockups
+        ├── cartas.png
+        ├── cartassimples-1.png
+        ├── cartassimples2.png
+        ├── cartasysobres2.png
+        ├── cratasysobres-1.png
+        ├── fondo1.png
+        ├── fondo2.png
+        ├── portada-sobreycarta.png
+        ├── sobremascarta.png
+        ├── tutorial-cartasimple.png
+        ├── tutorial1.jpeg
+        ├── tutorial2.jpeg
+    └── productos
+
+└── 📁src
+    └── 📁assets
+        └── 📁icons
+        └── 📁images
+            ├── fondobanner.png
+            ├── logo.png
+        ├── hero.png
+        ├── vite.svg
+    └── 📁components
+        └── 📁cart
+            ├── CartItem.vue
+            ├── CartSummary.vue
+        └── 📁home
+            ├── Hero.vue
+        └── 📁layout
+            ├── CategorySidebar.vue
+            ├── Footer.vue
+            ├── MainLayout.vue
+            ├── Navbar.vue
+        └── 📁products
+            ├── CategoryCard.vue
+            ├── ProductCard.vue
+            ├── ProductGallery.vue
+    └── 📁data
+        ├── products.js
+    └── 📁router
+        ├── index.js
+    └── 📁stores
+        ├── cart.js
+        ├── products.js
+    └── 📁styles
+        ├── global.css
+        ├── variables.css
+    └── 📁views
+        ├── AdminLogin.vue
+        ├── AdminView.vue
+        ├── CartView.vue
+        ├── CatalogView.vue
+        ├── HomeView.vue
+        ├── ProductView.vue
+    ├── App.vue
+    └── main.js
+.gitignore
+index.html
+package-lock.json
+package.json
+vite.config.js

@@ -32,7 +32,7 @@ const productImages = computed<string[]>(() => {
 watch(() => route.params.id, syncProduct, { immediate: true });
 
 function increment() {
-  if (product.value && quantity.value < product.value.stock) quantity.value++;
+  quantity.value++;
 }
 function decrement() {
   if (quantity.value > 1) quantity.value--;
@@ -85,12 +85,6 @@ setAdminStatus()
             <span class="price-label">Precio</span>
             <p class="price">{{ formatPrice(product.precio) }}</p>
           </div>
-          <div class="stock-container">
-            <span class="stock-label">Disponibilidad</span>
-            <p class="stock" :class="{ 'low-stock': product.stock <= 3 }">
-              {{ product.stock > 0 ? `${product.stock} unidades` : 'Sin stock' }}
-            </p>
-          </div>
         </div>
 
         <div v-if="!isAdmin" class="purchase-section">
@@ -99,7 +93,7 @@ setAdminStatus()
             <div class="quantity-selector">
               <button @click="decrement" :disabled="quantity <= 1" class="qty-btn">-</button>
               <span class="qty-val">{{ quantity }}</span>
-              <button @click="increment" :disabled="quantity >= product.stock" class="qty-btn">+</button>
+              <button @click="increment" class="qty-btn">+</button>
             </div>
           </div>
 
@@ -305,15 +299,13 @@ setAdminStatus()
   flex-wrap: wrap;
 }
 
-.price-container,
-.stock-container {
+.price-container {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.price-label,
-.stock-label {
+.price-label {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -326,17 +318,6 @@ setAdminStatus()
   color: var(--color-primary);
   font-weight: 700;
   margin: 0;
-}
-
-.stock {
-  font-size: 1.15rem;
-  color: var(--color-gray);
-  font-weight: 600;
-  margin: 0;
-}
-
-.stock.low-stock {
-  color: #d9534f;
 }
 
 /* Purchase section */

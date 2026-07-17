@@ -15,7 +15,6 @@ const form = ref({
   subcategoria: '',
   descripcion: '',
   precio: 0,
-  stock: 0,
   destacado: false,
   nuevo: false,
 })
@@ -54,17 +53,13 @@ const selectedCategoryForSubcategories = ref(null)
 const newSubcategory = ref('')
 const subcategoryError = ref('')
 
-function clearCatalog() {
+async function clearCatalog() {
   if (!confirm('Esta acción vaciará todo el catálogo y no se puede deshacer. ¿Querés continuar?')) return
-  productsStore.resetToSeed()
-  // Remove saved data keys from localStorage as well
-  try {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('fan_del_papel_products')
-      window.localStorage.removeItem('fan_del_papel_categories')
-      window.localStorage.removeItem('fan_del_papel_subcategories')
-    }
-  } catch (e) {}
+  const result = await productsStore.resetToSeed()
+  if (!result?.ok) {
+    persistError.value = 'No se pudo vaciar el catalogo en Supabase.'
+    return
+  }
   resetForm()
   selectedProductId.value = null
   editingProduct.value = null
@@ -164,7 +159,6 @@ function resetForm() {
     subcategoria: '',
     descripcion: '',
     precio: 0,
-    stock: 0,
     destacado: false,
     nuevo: false,
   }
@@ -193,7 +187,6 @@ function startEdit(product) {
     subcategoria: product.subcategoria || '',
     descripcion: product.descripcion,
     precio: product.precio,
-    stock: product.stock,
     destacado: Boolean(product.destacado),
     nuevo: Boolean(product.nuevo),
   }
@@ -229,22 +222,20 @@ async function saveProduct() {
 
   let result
   if (editingProduct.value) {
-    result = productsStore.updateProduct(editingProduct.value.id, payload)
+    result = await productsStore.updateProduct(editingProduct.value.id, payload)
     if (!result) {
       persistError.value = 'No se encontró el producto a editar.'
       return
     }
     if (!result.persistResult?.ok) {
-      persistError.value =
-        'No se pudo guardar en el navegador. Probá con imágenes más chicas o usá URLs en lugar de subir archivos.'
+      persistError.value = 'No se pudo guardar en Supabase.'
       return
     }
     saveFeedback.value = 'Producto actualizado correctamente.'
   } else {
-    result = productsStore.addProduct(payload)
+    result = await productsStore.addProduct(payload)
     if (!result.persistResult?.ok) {
-      persistError.value =
-        'No se pudo guardar en el navegador. Probá con imágenes más chicas o usá URLs en lugar de subir archivos.'
+      persistError.value = 'No se pudo guardar en Supabase.'
       return
     }
     saveFeedback.value = 'Producto agregado correctamente.'
@@ -258,7 +249,7 @@ async function saveProduct() {
 
 function onPersistError() {
   persistError.value =
-    'No se pudo guardar porque el almacenamiento del navegador se llenó (pasa con imágenes pesadas). Probá con menos imágenes o más livianas.'
+    'No se pudo guardar la cache local del navegador.'
 }
 
 onMounted(() => {
@@ -269,9 +260,13 @@ onUnmounted(() => {
   window.removeEventListener('fan-del-papel:persist-error', onPersistError)
 })
 
-function removeProduct(id) {
+async function removeProduct(id) {
   if (confirm('¿Querés eliminar este producto?')) {
-    productsStore.removeProduct(id)
+    const result = await productsStore.removeProduct(id)
+    if (!result?.persistResult?.ok) {
+      persistError.value = 'No se pudo eliminar en Supabase.'
+      return
+    }
     if (selectedProductId.value === id) {
       resetForm()
       selectedProductId.value = null
@@ -310,9 +305,13 @@ function removeSubcategory(category, subcategory) {
   productsStore.removeSubcategory(category, subcategory)
 }
 
-function deleteCategory(name) {
+async function deleteCategory(name) {
   if (!confirm(`¿Querés eliminar la categoría "${name}"? Los productos asociados pasarán a otra categoría.`)) return
-  productsStore.removeCategory(name)
+  const result = await productsStore.removeCategory(name)
+  if (!result) {
+    categoryError.value = 'No se pudo eliminar la categoria.'
+    return
+  }
   if (selectedCategoryForSubcategories.value === name) {
     selectedCategoryForSubcategories.value = null
   }
@@ -349,14 +348,14 @@ function addCategory() {
   categoryError.value = ''
 }
 
-function updateCategoryName() {
+async function updateCategoryName() {
   if (!categoryEdit.value) return
   const name = String(categoryEditName.value).trim()
   if (!name) {
     categoryError.value = 'Ingresa un nombre de categoría válido.'
     return
   }
-  const updated = productsStore.updateCategory(categoryEdit.value, name)
+  const updated = await productsStore.updateCategory(categoryEdit.value, name)
   if (!updated) {
     categoryError.value = 'No se pudo actualizar la categoría. Revisa que no exista otro nombre igual.'
     return
@@ -502,11 +501,6 @@ function updateCategoryName() {
           <label>
             Precio
             <input v-model.number="form.precio" type="number" min="0" />
-          </label>
-
-          <label>
-            Stock
-            <input v-model.number="form.stock" type="number" min="0" />
           </label>
 
           <label class="checkbox">

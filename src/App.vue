@@ -33,8 +33,10 @@ const showSidebar = computed(() => route.meta.showCategorySidebar === true)
 .app-body {
   display: flex;
   justify-content: center;
-  gap: var(--spacing-base);
+  gap: 18px;
   width: 100%;
+  padding: 0 18px;
+  box-sizing: border-box;
 }
 
 .main-content {
@@ -64,8 +66,8 @@ const showSidebar = computed(() => route.meta.showCategorySidebar === true)
 @media (max-width: 768px) {
   .app-body {
     flex-direction: column;
-    gap: var(--spacing-base);
-    padding: 0 var(--spacing-base);
+    gap: 12px;
+    padding: 0 14px;
   }
   
   .main-content {

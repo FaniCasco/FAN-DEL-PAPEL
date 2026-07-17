@@ -74,24 +74,10 @@ export const useCartStore = defineStore('cart', () => {
     const currentQty = existing ? existing.quantity : 0
     const newQty = currentQty + quantity
 
-    // Controlar que no supere el stock disponible
-    if (newQty > product.stock) {
-      const allowedAdd = product.stock - currentQty
-      if (allowedAdd > 0) {
-        if (existing) {
-          existing.quantity = product.stock
-        } else {
-          items.value.push({ ...product, quantity: product.stock })
-        }
-      } else if (!existing) {
-        console.warn(`No se puede agregar ${product.nombre} porque no hay stock suficiente.`)
-      }
+    if (existing) {
+      existing.quantity = newQty
     } else {
-      if (existing) {
-        existing.quantity = newQty
-      } else {
-        items.value.push({ ...product, quantity })
-      }
+      items.value.push({ ...product, quantity })
     }
   }
 
@@ -102,9 +88,7 @@ export const useCartStore = defineStore('cart', () => {
   function updateQuantity(productId, quantity) {
     const existing = items.value.find((item) => item.id === productId)
     if (existing) {
-      // Cuidando el stock y que no sea menor a 1
-      const targetQty = Math.max(1, Math.min(quantity, existing.stock))
-      existing.quantity = targetQty
+      existing.quantity = Math.max(1, quantity)
     }
   }
 

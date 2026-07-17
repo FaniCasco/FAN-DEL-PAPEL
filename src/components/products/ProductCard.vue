@@ -28,7 +28,7 @@ function handleAddToCart(event?: Event) {
 
 function increment(event?: Event) {
   event?.stopPropagation();
-  if (quantity.value < props.product.stock) quantity.value += 1;
+  quantity.value += 1;
 }
 
 function decrement(event?: Event) {

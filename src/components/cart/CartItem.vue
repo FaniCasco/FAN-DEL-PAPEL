@@ -7,9 +7,7 @@ const item = props.item;
 const cart = useCartStore();
 
 function inc() {
-  if (props.item.quantity < props.item.stock) {
-    cart.updateQuantity(props.item.id, props.item.quantity + 1);
-  }
+  cart.updateQuantity(props.item.id, props.item.quantity + 1);
 }
 function dec() {
   if (props.item.quantity > 1) {

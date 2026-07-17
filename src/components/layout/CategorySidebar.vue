@@ -1,8 +1,7 @@
 <template>
   <aside class="category-sidebar">
     <div class="sidebar-heading">
-      <p>Categorías</p>
-      <h2>Explorá la colección</h2>
+      <p>CATEGORIAS</p>
     </div>
 
     <button
@@ -11,7 +10,6 @@
       @click="selectCategory('Todas')"
     >
       Todas
-      <span class="count">x {{ totalProducts }}</span>
     </button>
 
     <nav class="categories-list">
@@ -22,7 +20,6 @@
           @click="selectCategory(group.value)"
         >
           {{ group.label }}
-          <span class="count">x {{ group.count }}</span>
         </button>
 
         <div v-if="activeCategory === group.value && group.subcategories.length" class="subcategory-list">
@@ -63,13 +60,10 @@ const categoryGroups = computed(() => {
     return {
       label: category,
       value: category,
-      count: products.length,
       subcategories,
     }
   })
 })
-
-const totalProducts = computed(() => productsStore.products.length)
 
 function selectCategory(category: string) {
   router.push({ name: 'Catalog', query: { category, subcategory: 'Todas' } })
@@ -92,8 +86,8 @@ function selectSubcategory(subcategory: string) {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-base);
+  border-radius: 5px;
+  padding: 14px;
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 96px;
@@ -114,24 +108,18 @@ function selectSubcategory(subcategory: string) {
 }
 
 .sidebar-heading {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .sidebar-heading p,
 .eyebrow {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 1rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-.sidebar-heading h2 {
-  margin: 0.2rem 0 0;
+  letter-spacing: 0.14em;
+  color: #1f1a17;
+  font-weight: 800;
   font-family: var(--font-title);
-  font-size: 1.5rem;
-  color: var(--color-text);
 }
 
 .category-button,
@@ -140,10 +128,10 @@ function selectSubcategory(subcategory: string) {
   text-align: left;
   border: none;
   background: transparent;
-  padding: 0.8rem 0.75rem;
-  border-radius: var(--radius-md);
+  padding: 0.65rem 0.7rem;
+  border-radius: 5px;
   cursor: pointer;
-  color: var(--color-text);
+  color: #2a2320;
   transition: var(--transition-smooth);
   display: flex;
   justify-content: space-between;
@@ -161,15 +149,11 @@ function selectSubcategory(subcategory: string) {
   color: var(--color-on-primary);
 }
 
-.category-button.active .count {
-  color: rgba(255, 255, 255, 0.8);
-}
-
 .subcategory-list {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding-left: 0.75rem;
+  gap: 0.15rem;
+  padding-left: 0.5rem;
   margin-top: 4px;
 }
 
@@ -180,11 +164,7 @@ function selectSubcategory(subcategory: string) {
 }
 
 .category-group {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.45rem;
 }
 
-.count {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-}
 </style>
