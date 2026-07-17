@@ -16,7 +16,7 @@ const persistError = ref('')
 const form = ref({
   nombre: '',
   slug: '',
-  categoria: 'PapelerÃ­a',
+  categoria: 'Papelería',
   subcategoria: '',
   descripcion: '',
   precio: 0,
@@ -24,9 +24,9 @@ const form = ref({
   nuevo: false,
 })
 
-// Lista unificada de imÃ¡genes del producto.
+// Lista unificada de imágenes del producto.
 // Cada entrada es un string (data URL o URL externa).
-// La posiciÃ³n 0 siempre es la imagen principal.
+// La posición 0 siempre es la imagen principal.
 const productImageList = ref([])
 const isUploadingImages = ref(false)
 
@@ -100,7 +100,7 @@ function getStorageImageUrls(images = []) {
 }
 
 async function clearCatalog() {
-  if (!confirm('Esta acciÃ³n vaciarÃ¡ todo el catÃ¡logo y no se puede deshacer. Â¿QuerÃ©s continuar?')) return
+  if (!confirm('Esta acción vaciará todo el catálogo y no se puede deshacer. ¿Querés continuar?')) return
   const productImagesToDelete = products.value.flatMap((product) => getStorageImageUrls(product.imagenes))
   const result = await productsStore.resetToSeed()
   if (!result?.ok) {
@@ -141,12 +141,12 @@ async function handleFileUpload(event) {
       productImageList.value.push(createFileImageEntry(file))
     }
   } catch {
-    persistError.value = 'No se pudo procesar una de las imÃ¡genes. ProbÃ¡ con otra.'
+    persistError.value = 'No se pudo procesar una de las imágenes. Probá con otra.'
   }
   event.target.value = ''
 }
 
-// Mueve la imagen en `index` a la posiciÃ³n 0 (la hace principal)
+// Mueve la imagen en `index` a la posición 0 (la hace principal)
 function setMainImage(index) {
   if (index === 0) return
   const [main] = productImageList.value.splice(index, 1)
@@ -172,7 +172,7 @@ function resetForm() {
   form.value = {
     nombre: '',
     slug: '',
-    categoria: categories.value.length ? categories.value[0] : 'PapelerÃ­a',
+    categoria: categories.value.length ? categories.value[0] : 'Papelería',
     subcategoria: '',
     descripcion: '',
     precio: 0,
@@ -192,7 +192,7 @@ function startCreate() {
 function startEdit(product) {
   editingProduct.value = product
   selectedProductId.value = product.id
-  // Cargar imÃ¡genes directamente en la lista unificada (sin separar por tipo)
+  // Cargar imágenes directamente en la lista unificada (sin separar por tipo)
   productImageList.value = Array.isArray(product.imagenes)
     ? product.imagenes.filter(Boolean).map((image) => createUrlImageEntry(image))
     : []
@@ -210,7 +210,7 @@ function startEdit(product) {
 }
 
 function addImageField() {
-  // Mantenida por compatibilidad â€” ahora se usa addImageUrl()
+  // Mantenida por compatibilidad — ahora se usa addImageUrl()
   addImageUrl()
 }
 
@@ -341,7 +341,7 @@ onUnmounted(() => {
 })
 
 async function removeProduct(id) {
-  if (confirm('Â¿QuerÃ©s eliminar este producto?')) {
+  if (confirm('¿Querés eliminar este producto?')) {
     const result = await productsStore.removeProduct(id)
     if (!result?.persistResult?.ok) {
       persistError.value = getPersistErrorMessage(
@@ -373,17 +373,17 @@ function selectCategoryForSubcategories(category) {
 
 function addSubcategory() {
   if (!selectedCategoryForSubcategories.value) {
-    subcategoryError.value = 'SeleccionÃ¡ una categorÃ­a primero.'
+    subcategoryError.value = 'Seleccioná una categoría primero.'
     return
   }
   const name = String(newSubcategory.value).trim()
   if (!name) {
-    subcategoryError.value = 'Ingresa un nombre de subcategorÃ­a vÃ¡lido.'
+    subcategoryError.value = 'Ingresa un nombre de subcategoría válido.'
     return
   }
   const added = productsStore.addSubcategory(selectedCategoryForSubcategories.value, name)
   if (!added) {
-    subcategoryError.value = 'La subcategorÃ­a ya existe o no es vÃ¡lida.'
+    subcategoryError.value = 'La subcategoría ya existe o no es válida.'
     return
   }
   newSubcategory.value = ''
@@ -391,12 +391,12 @@ function addSubcategory() {
 }
 
 function removeSubcategory(category, subcategory) {
-  if (!confirm(`Â¿QuerÃ©s eliminar la subcategorÃ­a "${subcategory}" de ${category}?`)) return
+  if (!confirm(`¿Querés eliminar la subcategoría "${subcategory}" de ${category}?`)) return
   productsStore.removeSubcategory(category, subcategory)
 }
 
 async function deleteCategory(name) {
-  if (!confirm(`Â¿QuerÃ©s eliminar la categorÃ­a "${name}"? Los productos asociados pasarÃ¡n a otra categorÃ­a.`)) return
+  if (!confirm(`¿Querés eliminar la categoría "${name}"? Los productos asociados pasarán a otra categoría.`)) return
   const result = await productsStore.removeCategory(name)
   if (!result) {
     categoryError.value = 'No se pudo eliminar la categoria.'
@@ -426,12 +426,12 @@ function cancelCategoryEdit() {
 function addCategory() {
   const name = String(newCategory.value).trim()
   if (!name) {
-    categoryError.value = 'Ingresa un nombre de categorÃ­a vÃ¡lido.'
+    categoryError.value = 'Ingresa un nombre de categoría válido.'
     return
   }
   const added = productsStore.addCategory(name)
   if (!added) {
-    categoryError.value = 'La categorÃ­a ya existe o el nombre no es vÃ¡lido.'
+    categoryError.value = 'La categoría ya existe o el nombre no es válido.'
     return
   }
   newCategory.value = ''
@@ -442,12 +442,12 @@ async function updateCategoryName() {
   if (!categoryEdit.value) return
   const name = String(categoryEditName.value).trim()
   if (!name) {
-    categoryError.value = 'Ingresa un nombre de categorÃ­a vÃ¡lido.'
+    categoryError.value = 'Ingresa un nombre de categoría válido.'
     return
   }
   const updated = await productsStore.updateCategory(categoryEdit.value, name)
   if (!updated) {
-    categoryError.value = 'No se pudo actualizar la categorÃ­a. Revisa que no exista otro nombre igual.'
+    categoryError.value = 'No se pudo actualizar la categoría. Revisa que no exista otro nombre igual.'
     return
   }
   if (selectedCategoryForSubcategories.value === categoryEdit.value) {
@@ -464,18 +464,18 @@ async function updateCategoryName() {
     <div class="admin-shell">
       <div class="admin-sidebar">
         <div class="sidebar-header">
-          <h2>AdministraciÃ³n</h2>
-          <RouterLink to="/catalogo" class="back-button">â† Volver al catÃ¡logo</RouterLink>
-          <button class="ghost" @click="logout">Cerrar sesiÃ³n</button>
+          <h2>Administración</h2>
+          <RouterLink to="/catalogo" class="back-button">← Volver al catálogo</RouterLink>
+          <button class="ghost" @click="logout">Cerrar sesión</button>
         </div>
 
         <button type="button" class="primary" @click="startCreate">+ Nuevo producto</button>
-        <button type="button" class="ghost" @click="clearCatalog">Vaciar catÃ¡logo</button>
+        <button type="button" class="ghost" @click="clearCatalog">Vaciar catálogo</button>
 
         <section class="category-manager">
-          <h3>CategorÃ­as</h3>
+          <h3>Categorías</h3>
           <div class="category-actions">
-            <input v-model="newCategory" placeholder="Nueva categorÃ­a" />
+            <input v-model="newCategory" placeholder="Nueva categoría" />
             <button type="button" class="primary" @click="addCategory">Agregar</button>
           </div>
           <div class="category-list-admin">
@@ -483,12 +483,12 @@ async function updateCategoryName() {
               <div>
                 <strong>{{ category }}</strong>
                 <div class="category-meta">
-                  <button type="button" class="ghost small" @click="selectCategoryForSubcategories(category)">SubcategorÃ­as</button>
+                  <button type="button" class="ghost small" @click="selectCategoryForSubcategories(category)">Subcategorías</button>
                 </div>
               </div>
               <div class="category-entry-actions">
                 <button type="button" class="ghost" @click="editCategory(category)">Editar</button>
-                <button type="button" class="icon-button" @click="deleteCategory(category)" aria-label="Eliminar categorÃ­a">
+                <button type="button" class="icon-button" @click="deleteCategory(category)" aria-label="Eliminar categoría">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18" />
                     <path d="M8 6V4h8v2" />
@@ -502,7 +502,7 @@ async function updateCategoryName() {
           </div>
           <div v-if="categoryEdit" class="category-edit-form">
             <label>
-              Editar categorÃ­a:
+              Editar categoría:
               <input v-model="categoryEditName" />
             </label>
             <div class="category-edit-actions">
@@ -512,9 +512,9 @@ async function updateCategoryName() {
           </div>
 
           <div v-if="selectedCategoryForSubcategories" class="subcategory-manager">
-            <h4>SubcategorÃ­as de {{ selectedCategoryForSubcategories }}</h4>
+            <h4>Subcategorías de {{ selectedCategoryForSubcategories }}</h4>
             <div class="subcategory-actions">
-              <input v-model="newSubcategory" placeholder="Nueva subcategorÃ­a" />
+              <input v-model="newSubcategory" placeholder="Nueva subcategoría" />
               <button type="button" class="primary" @click="addSubcategory">Agregar</button>
             </div>
             <div class="subcategory-list-admin">
@@ -527,7 +527,7 @@ async function updateCategoryName() {
                 <button type="button" class="danger small" @click="removeSubcategory(selectedCategoryForSubcategories, sub)">Eliminar</button>
               </div>
             </div>
-            <button type="button" class="ghost small" @click="selectedCategoryForSubcategories = null">Cerrar subcategorÃ­as</button>
+            <button type="button" class="ghost small" @click="selectedCategoryForSubcategories = null">Cerrar subcategorías</button>
           </div>
 
           <p v-if="categoryError" class="form-error">{{ categoryError }}</p>
@@ -563,7 +563,7 @@ async function updateCategoryName() {
           </label>
 
           <label>
-            CategorÃ­a
+            Categoría
             <select v-model="form.categoria">
               <option v-for="category in categories" :key="category" :value="category">
                 {{ category }}
@@ -572,10 +572,10 @@ async function updateCategoryName() {
           </label>
 
           <label>
-            SubcategorÃ­a
+            Subcategoría
             <div class="subcategory-field">
               <select v-model="form.subcategoria">
-                <option value="">Sin subcategorÃ­a</option>
+                <option value="">Sin subcategoría</option>
                 <option
                   v-for="sub in subcategories"
                   :key="sub"
@@ -605,17 +605,17 @@ async function updateCategoryName() {
         </div>
 
         <label>
-          DescripciÃ³n
+          Descripción
           <textarea v-model="form.descripcion" rows="4" />
         </label>
 
         <div class="images-section">
           <div class="images-header">
-            <h3>ImÃ¡genes del producto</h3>
+            <h3>Imágenes del producto</h3>
             <div class="image-actions">
               <label class="file-upload">
                 <input type="file" accept="image/*" multiple @change="handleFileUpload" />
-                ðŸ“ Subir desde archivo
+                📁 Subir desde archivo
               </label>
             </div>
           </div>
@@ -626,9 +626,9 @@ async function updateCategoryName() {
             <button class="ghost" type="button" @click="addImageUrl">Agregar URL</button>
           </div>
 
-          <!-- Lista unificada de imÃ¡genes -->
+          <!-- Lista unificada de imagenes -->
           <div v-if="productImageList.length" class="unified-image-list">
-            <p class="images-hint">La primera imagen es la <strong>principal</strong>. HacÃ© click en â­ para cambiarla.</p>
+            <p class="images-hint">La primera imagen es la <strong>principal</strong>. Hacé click en ⭐ para cambiarla.</p>
             <div class="preview-grid">
               <div
                 v-for="(image, index) in productImageList"
@@ -636,7 +636,7 @@ async function updateCategoryName() {
                 class="preview-item"
                 :class="{ 'is-main': index === 0 }"
               >
-                <div class="preview-badge" v-if="index === 0">â­ Principal</div>
+                <div class="preview-badge" v-if="index === 0">⭐ Principal</div>
                 <img :src="getImageSource(image)" alt="Imagen del producto" />
                 <div class="preview-controls">
                   <button
@@ -645,15 +645,15 @@ async function updateCategoryName() {
                     type="button"
                     @click="setMainImage(index)"
                     title="Hacer imagen principal"
-                  >â­ Principal</button>
+                  >⭐ Principal</button>
                   <button class="danger small" type="button" @click="removeImage(index)">Eliminar</button>
                 </div>
               </div>
             </div>
           </div>
 
-          <p v-else class="images-empty-hint">AÃºn no hay imÃ¡genes. SubÃ­ archivos o agregÃ¡ una URL.</p>
-          <p v-if="isUploadingImages" class="form-hint">â³ Cargando imÃ¡genes...</p>
+          <p v-else class="images-empty-hint">Aún no hay imagenes. Subí archivos o agregá una URL.</p>
+          <p v-if="isUploadingImages" class="form-hint">⏳ Cargando imagenes...</p>
         </div>
 
         <div class="actions">
@@ -983,4 +983,5 @@ label textarea {
   }
 }
 </style>
+
 
