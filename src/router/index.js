@@ -10,7 +10,7 @@ const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/catalogo', name: 'Catalog', component: CatalogView, meta: { showCategorySidebar: true } },
   { path: '/producto/:id', name: 'ProductDetail', component: ProductView, props: true, meta: { showCategorySidebar: true } },
-  { path: '/carrito', name: 'Cart', component: CartView, meta: { showCategorySidebar: true } },
+  { path: '/carrito', name: 'Cart', component: CartView, meta: { showCategorySidebar: false } },
   { path: '/admin', redirect: '/admin-login' },
   { path: '/admin-login', name: 'AdminLogin', component: AdminLogin },
   { path: '/admin-panel', name: 'AdminPanel', component: AdminView, meta: { requiresAdmin: true } },
