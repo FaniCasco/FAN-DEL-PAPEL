@@ -1,6 +1,11 @@
-<script setup>
+﻿<script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useProductsStore } from '@/stores/products'
+import {
+  deleteSupabaseStorageUrls,
+  isSupabaseStorageUrl,
+  uploadProductImage,
+} from '@/lib/supabaseStorage'
 import { useRouter } from 'vue-router'
 
 const productsStore = useProductsStore()
@@ -11,7 +16,7 @@ const persistError = ref('')
 const form = ref({
   nombre: '',
   slug: '',
-  categoria: 'Papelería',
+  categoria: 'PapelerÃ­a',
   subcategoria: '',
   descripcion: '',
   precio: 0,
@@ -19,9 +24,9 @@ const form = ref({
   nuevo: false,
 })
 
-// Lista unificada de imágenes del producto.
+// Lista unificada de imÃ¡genes del producto.
 // Cada entrada es un string (data URL o URL externa).
-// La posición 0 siempre es la imagen principal.
+// La posiciÃ³n 0 siempre es la imagen principal.
 const productImageList = ref([])
 const isUploadingImages = ref(false)
 
@@ -59,8 +64,44 @@ function getPersistErrorMessage(error, fallback) {
   return error.message || fallback
 }
 
+function createUrlImageEntry(url) {
+  return {
+    kind: 'url',
+    value: url,
+  }
+}
+
+function createFileImageEntry(file) {
+  return {
+    kind: 'file',
+    file,
+    previewUrl: URL.createObjectURL(file),
+  }
+}
+
+function getImageSource(image) {
+  if (!image) return ''
+  if (typeof image === 'string') return image
+  return image.kind === 'file' ? image.previewUrl : image.value
+}
+
+function revokeImageEntryPreview(image) {
+  if (image?.kind === 'file' && image.previewUrl) {
+    URL.revokeObjectURL(image.previewUrl)
+  }
+}
+
+function clearImageEntries(entries = []) {
+  entries.forEach((entry) => revokeImageEntryPreview(entry))
+}
+
+function getStorageImageUrls(images = []) {
+  return images.filter((image) => typeof image === 'string' && isSupabaseStorageUrl(image))
+}
+
 async function clearCatalog() {
-  if (!confirm('Esta acción vaciará todo el catálogo y no se puede deshacer. ¿Querés continuar?')) return
+  if (!confirm('Esta acciÃ³n vaciarÃ¡ todo el catÃ¡logo y no se puede deshacer. Â¿QuerÃ©s continuar?')) return
+  const productImagesToDelete = products.value.flatMap((product) => getStorageImageUrls(product.imagenes))
   const result = await productsStore.resetToSeed()
   if (!result?.ok) {
     persistError.value = getPersistErrorMessage(
@@ -68,6 +109,12 @@ async function clearCatalog() {
       'No se pudo vaciar el catalogo en Supabase.'
     )
     return
+  }
+  if (productImagesToDelete.length) {
+    const cleanupResult = await deleteSupabaseStorageUrls(productImagesToDelete)
+    if (!cleanupResult.ok) {
+      console.warn('No se pudieron borrar algunas imágenes del Storage:', cleanupResult.error)
+    }
   }
   resetForm()
   selectedProductId.value = null
@@ -84,63 +131,22 @@ function logout() {
   router.push({ name: 'AdminLogin' })
 }
 
-async function compressImageFile(file, { maxSide = 1400, quality = 0.82, type = 'image/webp' } = {}) {
-  // Reduce tamaño antes de persistir en localStorage (evita superar cuota)
-  const dataUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result || ''))
-    reader.onerror = () => reject(new Error('No se pudo leer el archivo'))
-    reader.readAsDataURL(file)
-  })
-
-  const img = await new Promise((resolve, reject) => {
-    const el = new Image()
-    el.onload = () => resolve(el)
-    el.onerror = () => reject(new Error('No se pudo cargar la imagen'))
-    el.src = dataUrl
-  })
-
-  const w = img.naturalWidth || img.width || 1
-  const h = img.naturalHeight || img.height || 1
-  const scale = Math.min(1, maxSide / Math.max(w, h))
-  const targetW = Math.max(1, Math.round(w * scale))
-  const targetH = Math.max(1, Math.round(h * scale))
-
-  const canvas = document.createElement('canvas')
-  canvas.width = targetW
-  canvas.height = targetH
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return dataUrl
-
-  ctx.drawImage(img, 0, 0, targetW, targetH)
-  try {
-    return canvas.toDataURL(type, quality)
-  } catch (_) {
-    // Fallback si el browser no soporta webp/quality
-    return canvas.toDataURL('image/jpeg', 0.85)
-  }
-}
-
 async function handleFileUpload(event) {
   const files = event.target.files
   if (!files?.length) return
 
   persistError.value = ''
-  isUploadingImages.value = true
   try {
     for (const file of Array.from(files)) {
-      const compressed = await compressImageFile(file)
-      if (compressed) productImageList.value.push(compressed)
+      productImageList.value.push(createFileImageEntry(file))
     }
   } catch {
-    persistError.value = 'No se pudo procesar una de las imágenes. Probá con otra.'
-  } finally {
-    isUploadingImages.value = false
-    event.target.value = ''
+    persistError.value = 'No se pudo procesar una de las imÃ¡genes. ProbÃ¡ con otra.'
   }
+  event.target.value = ''
 }
 
-// Mueve la imagen en `index` a la posición 0 (la hace principal)
+// Mueve la imagen en `index` a la posiciÃ³n 0 (la hace principal)
 function setMainImage(index) {
   if (index === 0) return
   const [main] = productImageList.value.splice(index, 1)
@@ -148,6 +154,7 @@ function setMainImage(index) {
 }
 
 function removeImage(index) {
+  revokeImageEntryPreview(productImageList.value[index])
   productImageList.value.splice(index, 1)
 }
 
@@ -156,15 +163,16 @@ const newImageUrl = ref('')
 function addImageUrl() {
   const url = newImageUrl.value.trim()
   if (!url) return
-  productImageList.value.push(url)
+  productImageList.value.push(createUrlImageEntry(url))
   newImageUrl.value = ''
 }
 
 function resetForm() {
+  clearImageEntries(productImageList.value)
   form.value = {
     nombre: '',
     slug: '',
-    categoria: categories.value.length ? categories.value[0] : 'Papelería',
+    categoria: categories.value.length ? categories.value[0] : 'PapelerÃ­a',
     subcategoria: '',
     descripcion: '',
     precio: 0,
@@ -184,9 +192,9 @@ function startCreate() {
 function startEdit(product) {
   editingProduct.value = product
   selectedProductId.value = product.id
-  // Cargar imágenes directamente en la lista unificada (sin separar por tipo)
+  // Cargar imÃ¡genes directamente en la lista unificada (sin separar por tipo)
   productImageList.value = Array.isArray(product.imagenes)
-    ? product.imagenes.filter(Boolean)
+    ? product.imagenes.filter(Boolean).map((image) => createUrlImageEntry(image))
     : []
   newImageUrl.value = ''
   form.value = {
@@ -202,7 +210,7 @@ function startEdit(product) {
 }
 
 function addImageField() {
-  // Mantenida por compatibilidad — ahora se usa addImageUrl()
+  // Mantenida por compatibilidad â€” ahora se usa addImageUrl()
   addImageUrl()
 }
 
@@ -210,7 +218,7 @@ function removeImageField() {}
 
 async function saveProduct() {
   if (isUploadingImages.value) {
-    persistError.value = 'Esperá a que terminen de cargar las imágenes antes de guardar.'
+    persistError.value = 'Esperá a que terminen de procesarse las imágenes antes de guardar.'
     return
   }
 
@@ -221,32 +229,88 @@ async function saveProduct() {
     return
   }
 
+  const previousImages = Array.isArray(editingProduct.value?.imagenes)
+    ? [...editingProduct.value.imagenes]
+    : []
+
+  isUploadingImages.value = true
+  const uploadedImages = []
+  const imageUrls = []
+
+  try {
+    for (const [index, image] of productImageList.value.entries()) {
+      if (typeof image === 'string') {
+        const trimmed = image.trim()
+        if (trimmed) imageUrls.push(trimmed)
+        continue
+      }
+
+      if (image.kind === 'file') {
+        const uploadResult = await uploadProductImage(image.file, {
+          slug: form.value.slug || nombre,
+          index,
+        })
+
+        if (!uploadResult.ok) {
+          await deleteSupabaseStorageUrls(uploadedImages)
+          persistError.value = getPersistErrorMessage(uploadResult.error, 'No se pudo subir una imagen.')
+          return
+        }
+
+        imageUrls.push(uploadResult.url)
+        uploadedImages.push(uploadResult.url)
+        continue
+      }
+
+      if (typeof image.value === 'string' && image.value.trim()) {
+        imageUrls.push(image.value.trim())
+      }
+    }
+  } catch (error) {
+    await deleteSupabaseStorageUrls(uploadedImages)
+    persistError.value = getPersistErrorMessage(error, 'No se pudo procesar una de las imágenes.')
+    return
+  } finally {
+    isUploadingImages.value = false
+  }
+
   const payload = {
     ...form.value,
     nombre,
     slug: form.value.slug || undefined,
-    // Filtramos strings vacíos o corruptos antes de guardar
-    imagenes: productImageList.value.filter((img) => typeof img === 'string' && img.length > 10),
+    imagenes: imageUrls,
   }
 
   let result
   if (editingProduct.value) {
     result = await productsStore.updateProduct(editingProduct.value.id, payload)
     if (!result) {
+      await deleteSupabaseStorageUrls(uploadedImages)
       persistError.value = 'No se encontró el producto a editar.'
       return
     }
     if (!result.persistResult?.ok) {
+      await deleteSupabaseStorageUrls(uploadedImages)
       persistError.value = getPersistErrorMessage(
         result.persistResult?.error,
         'No se pudo guardar en Supabase.'
       )
       return
     }
+    const previousStorageImages = getStorageImageUrls(previousImages)
+    const nextStorageImages = getStorageImageUrls(imageUrls)
+    const removedImages = previousStorageImages.filter((url) => !nextStorageImages.includes(url))
+    if (removedImages.length) {
+      const cleanupResult = await deleteSupabaseStorageUrls(removedImages)
+      if (!cleanupResult.ok) {
+        console.warn('No se pudieron borrar algunas imágenes reemplazadas:', cleanupResult.error)
+      }
+    }
     saveFeedback.value = 'Producto actualizado correctamente.'
   } else {
     result = await productsStore.addProduct(payload)
     if (!result.persistResult?.ok) {
+      await deleteSupabaseStorageUrls(uploadedImages)
       persistError.value = getPersistErrorMessage(
         result.persistResult?.error,
         'No se pudo guardar en Supabase.'
@@ -273,10 +337,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('fan-del-papel:persist-error', onPersistError)
+  clearImageEntries(productImageList.value)
 })
 
 async function removeProduct(id) {
-  if (confirm('¿Querés eliminar este producto?')) {
+  if (confirm('Â¿QuerÃ©s eliminar este producto?')) {
     const result = await productsStore.removeProduct(id)
     if (!result?.persistResult?.ok) {
       persistError.value = getPersistErrorMessage(
@@ -284,6 +349,13 @@ async function removeProduct(id) {
         'No se pudo eliminar en Supabase.'
       )
       return
+    }
+    const imagesToDelete = getStorageImageUrls(result.product?.imagenes || [])
+    if (imagesToDelete.length) {
+      const cleanupResult = await deleteSupabaseStorageUrls(imagesToDelete)
+      if (!cleanupResult.ok) {
+        console.warn('No se pudieron borrar algunas imágenes del producto:', cleanupResult.error)
+      }
     }
     if (selectedProductId.value === id) {
       resetForm()
@@ -301,17 +373,17 @@ function selectCategoryForSubcategories(category) {
 
 function addSubcategory() {
   if (!selectedCategoryForSubcategories.value) {
-    subcategoryError.value = 'Seleccioná una categoría primero.'
+    subcategoryError.value = 'SeleccionÃ¡ una categorÃ­a primero.'
     return
   }
   const name = String(newSubcategory.value).trim()
   if (!name) {
-    subcategoryError.value = 'Ingresa un nombre de subcategoría válido.'
+    subcategoryError.value = 'Ingresa un nombre de subcategorÃ­a vÃ¡lido.'
     return
   }
   const added = productsStore.addSubcategory(selectedCategoryForSubcategories.value, name)
   if (!added) {
-    subcategoryError.value = 'La subcategoría ya existe o no es válida.'
+    subcategoryError.value = 'La subcategorÃ­a ya existe o no es vÃ¡lida.'
     return
   }
   newSubcategory.value = ''
@@ -319,12 +391,12 @@ function addSubcategory() {
 }
 
 function removeSubcategory(category, subcategory) {
-  if (!confirm(`¿Querés eliminar la subcategoría "${subcategory}" de ${category}?`)) return
+  if (!confirm(`Â¿QuerÃ©s eliminar la subcategorÃ­a "${subcategory}" de ${category}?`)) return
   productsStore.removeSubcategory(category, subcategory)
 }
 
 async function deleteCategory(name) {
-  if (!confirm(`¿Querés eliminar la categoría "${name}"? Los productos asociados pasarán a otra categoría.`)) return
+  if (!confirm(`Â¿QuerÃ©s eliminar la categorÃ­a "${name}"? Los productos asociados pasarÃ¡n a otra categorÃ­a.`)) return
   const result = await productsStore.removeCategory(name)
   if (!result) {
     categoryError.value = 'No se pudo eliminar la categoria.'
@@ -354,12 +426,12 @@ function cancelCategoryEdit() {
 function addCategory() {
   const name = String(newCategory.value).trim()
   if (!name) {
-    categoryError.value = 'Ingresa un nombre de categoría válido.'
+    categoryError.value = 'Ingresa un nombre de categorÃ­a vÃ¡lido.'
     return
   }
   const added = productsStore.addCategory(name)
   if (!added) {
-    categoryError.value = 'La categoría ya existe o el nombre no es válido.'
+    categoryError.value = 'La categorÃ­a ya existe o el nombre no es vÃ¡lido.'
     return
   }
   newCategory.value = ''
@@ -370,12 +442,12 @@ async function updateCategoryName() {
   if (!categoryEdit.value) return
   const name = String(categoryEditName.value).trim()
   if (!name) {
-    categoryError.value = 'Ingresa un nombre de categoría válido.'
+    categoryError.value = 'Ingresa un nombre de categorÃ­a vÃ¡lido.'
     return
   }
   const updated = await productsStore.updateCategory(categoryEdit.value, name)
   if (!updated) {
-    categoryError.value = 'No se pudo actualizar la categoría. Revisa que no exista otro nombre igual.'
+    categoryError.value = 'No se pudo actualizar la categorÃ­a. Revisa que no exista otro nombre igual.'
     return
   }
   if (selectedCategoryForSubcategories.value === categoryEdit.value) {
@@ -392,18 +464,18 @@ async function updateCategoryName() {
     <div class="admin-shell">
       <div class="admin-sidebar">
         <div class="sidebar-header">
-          <h2>Administración</h2>
-          <RouterLink to="/catalogo" class="back-button">← Volver al catálogo</RouterLink>
-          <button class="ghost" @click="logout">Cerrar sesión</button>
+          <h2>AdministraciÃ³n</h2>
+          <RouterLink to="/catalogo" class="back-button">â† Volver al catÃ¡logo</RouterLink>
+          <button class="ghost" @click="logout">Cerrar sesiÃ³n</button>
         </div>
 
         <button type="button" class="primary" @click="startCreate">+ Nuevo producto</button>
-        <button type="button" class="ghost" @click="clearCatalog">Vaciar catálogo</button>
+        <button type="button" class="ghost" @click="clearCatalog">Vaciar catÃ¡logo</button>
 
         <section class="category-manager">
-          <h3>Categorías</h3>
+          <h3>CategorÃ­as</h3>
           <div class="category-actions">
-            <input v-model="newCategory" placeholder="Nueva categoría" />
+            <input v-model="newCategory" placeholder="Nueva categorÃ­a" />
             <button type="button" class="primary" @click="addCategory">Agregar</button>
           </div>
           <div class="category-list-admin">
@@ -411,12 +483,12 @@ async function updateCategoryName() {
               <div>
                 <strong>{{ category }}</strong>
                 <div class="category-meta">
-                  <button type="button" class="ghost small" @click="selectCategoryForSubcategories(category)">Subcategorías</button>
+                  <button type="button" class="ghost small" @click="selectCategoryForSubcategories(category)">SubcategorÃ­as</button>
                 </div>
               </div>
               <div class="category-entry-actions">
                 <button type="button" class="ghost" @click="editCategory(category)">Editar</button>
-                <button type="button" class="icon-button" @click="deleteCategory(category)" aria-label="Eliminar categoría">
+                <button type="button" class="icon-button" @click="deleteCategory(category)" aria-label="Eliminar categorÃ­a">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18" />
                     <path d="M8 6V4h8v2" />
@@ -430,7 +502,7 @@ async function updateCategoryName() {
           </div>
           <div v-if="categoryEdit" class="category-edit-form">
             <label>
-              Editar categoría:
+              Editar categorÃ­a:
               <input v-model="categoryEditName" />
             </label>
             <div class="category-edit-actions">
@@ -440,9 +512,9 @@ async function updateCategoryName() {
           </div>
 
           <div v-if="selectedCategoryForSubcategories" class="subcategory-manager">
-            <h4>Subcategorías de {{ selectedCategoryForSubcategories }}</h4>
+            <h4>SubcategorÃ­as de {{ selectedCategoryForSubcategories }}</h4>
             <div class="subcategory-actions">
-              <input v-model="newSubcategory" placeholder="Nueva subcategoría" />
+              <input v-model="newSubcategory" placeholder="Nueva subcategorÃ­a" />
               <button type="button" class="primary" @click="addSubcategory">Agregar</button>
             </div>
             <div class="subcategory-list-admin">
@@ -455,7 +527,7 @@ async function updateCategoryName() {
                 <button type="button" class="danger small" @click="removeSubcategory(selectedCategoryForSubcategories, sub)">Eliminar</button>
               </div>
             </div>
-            <button type="button" class="ghost small" @click="selectedCategoryForSubcategories = null">Cerrar subcategorías</button>
+            <button type="button" class="ghost small" @click="selectedCategoryForSubcategories = null">Cerrar subcategorÃ­as</button>
           </div>
 
           <p v-if="categoryError" class="form-error">{{ categoryError }}</p>
@@ -491,7 +563,7 @@ async function updateCategoryName() {
           </label>
 
           <label>
-            Categoría
+            CategorÃ­a
             <select v-model="form.categoria">
               <option v-for="category in categories" :key="category" :value="category">
                 {{ category }}
@@ -500,10 +572,10 @@ async function updateCategoryName() {
           </label>
 
           <label>
-            Subcategoría
+            SubcategorÃ­a
             <div class="subcategory-field">
               <select v-model="form.subcategoria">
-                <option value="">Sin subcategoría</option>
+                <option value="">Sin subcategorÃ­a</option>
                 <option
                   v-for="sub in subcategories"
                   :key="sub"
@@ -533,17 +605,17 @@ async function updateCategoryName() {
         </div>
 
         <label>
-          Descripción
+          DescripciÃ³n
           <textarea v-model="form.descripcion" rows="4" />
         </label>
 
         <div class="images-section">
           <div class="images-header">
-            <h3>Imágenes del producto</h3>
+            <h3>ImÃ¡genes del producto</h3>
             <div class="image-actions">
               <label class="file-upload">
                 <input type="file" accept="image/*" multiple @change="handleFileUpload" />
-                📁 Subir desde archivo
+                ðŸ“ Subir desde archivo
               </label>
             </div>
           </div>
@@ -554,18 +626,18 @@ async function updateCategoryName() {
             <button class="ghost" type="button" @click="addImageUrl">Agregar URL</button>
           </div>
 
-          <!-- Lista unificada de imágenes -->
+          <!-- Lista unificada de imÃ¡genes -->
           <div v-if="productImageList.length" class="unified-image-list">
-            <p class="images-hint">La primera imagen es la <strong>principal</strong>. Hacé click en ⭐ para cambiarla.</p>
+            <p class="images-hint">La primera imagen es la <strong>principal</strong>. HacÃ© click en â­ para cambiarla.</p>
             <div class="preview-grid">
               <div
                 v-for="(image, index) in productImageList"
-                :key="`img-${index}`"
+                :key="typeof image === 'string' ? image : image.kind === 'file' ? image.previewUrl : image.value"
                 class="preview-item"
                 :class="{ 'is-main': index === 0 }"
               >
-                <div class="preview-badge" v-if="index === 0">⭐ Principal</div>
-                <img :src="image" alt="Imagen del producto" />
+                <div class="preview-badge" v-if="index === 0">â­ Principal</div>
+                <img :src="getImageSource(image)" alt="Imagen del producto" />
                 <div class="preview-controls">
                   <button
                     v-if="index !== 0"
@@ -573,15 +645,15 @@ async function updateCategoryName() {
                     type="button"
                     @click="setMainImage(index)"
                     title="Hacer imagen principal"
-                  >⭐ Principal</button>
+                  >â­ Principal</button>
                   <button class="danger small" type="button" @click="removeImage(index)">Eliminar</button>
                 </div>
               </div>
             </div>
           </div>
 
-          <p v-else class="images-empty-hint">Aún no hay imágenes. Subí archivos o agregá una URL.</p>
-          <p v-if="isUploadingImages" class="form-hint">⏳ Cargando imágenes...</p>
+          <p v-else class="images-empty-hint">AÃºn no hay imÃ¡genes. SubÃ­ archivos o agregÃ¡ una URL.</p>
+          <p v-if="isUploadingImages" class="form-hint">â³ Cargando imÃ¡genes...</p>
         </div>
 
         <div class="actions">
@@ -911,3 +983,4 @@ label textarea {
   }
 }
 </style>
+
