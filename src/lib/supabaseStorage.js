@@ -1,9 +1,25 @@
-import { supabase, supabaseConfigError, supabaseStorageBucket } from '@/lib/supabase'
+﻿import { supabase, supabaseConfigError, supabaseStorageBucket } from '@/lib/supabase'
 
 const STORAGE_FOLDER = 'catalogo'
 const STORAGE_URL_PATTERN = /\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/i
 
 const createFallbackError = (message) => supabaseConfigError || new Error(message)
+const bucketHelpText = () =>
+  `Creá un bucket público llamado "${supabaseStorageBucket}" en Supabase Storage, o cambia VITE_SUPABASE_STORAGE_BUCKET por el nombre correcto.`
+
+const createBucketNotFoundError = () =>
+  new Error(`No se encontró el bucket "${supabaseStorageBucket}". ${bucketHelpText()}`)
+
+const isBucketNotFoundError = (error) => {
+  const message = String(error?.message || error || '').toLowerCase()
+  return message.includes('bucket not found') || message.includes('no such bucket')
+}
+
+const toFriendlyStorageError = (error) => {
+  if (!error) return error
+  if (isBucketNotFoundError(error)) return createBucketNotFoundError()
+  return error
+}
 
 const normalizeText = (value = '') =>
   String(value || '')
@@ -112,7 +128,7 @@ export async function uploadProductImage(file, { slug = 'producto', index = 0 } 
   if (error) {
     return {
       ok: false,
-      error,
+      error: toFriendlyStorageError(error),
     }
   }
 
@@ -142,7 +158,7 @@ export async function deleteSupabaseStorageUrls(urls = []) {
   if (error) {
     return {
       ok: false,
-      error,
+      error: toFriendlyStorageError(error),
     }
   }
 
