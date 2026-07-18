@@ -36,10 +36,10 @@
   --shadow-lg: 0 16px 45px rgba(46, 39, 36, 0.08);
 
   /* Fuentes del sistema */
-  --font-title: 'Outfit' serif;
+  --font-title:  "Averia Serif Libre", serif;
   --font-body: 'Outfit', sans-serif;
 
   /* Animaciones y Transiciones */
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
+};

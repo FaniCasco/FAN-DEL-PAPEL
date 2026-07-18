@@ -7,7 +7,7 @@
         <span class="tag">
           💌 Cartas y papelería personalizada
         </span>
-        <h1>
+        <h1 >
           Escribí mensajes
           <br>
           con diseños únicos para animar a otros
@@ -74,11 +74,13 @@ import logo from '@/assets/images/logo.png'
 
 h1{
 
-    font-size:64px;
+    font-size:54px;
 
-    line-height:1.1;
+    line-height:1;
 
     margin: 0;
+
+    font-family: var(--font-title);
 
 }
 
@@ -91,8 +93,8 @@ h1{
 }
 
 .hero-side-logo {
-    inline-size: 320px;
-    block-size: 320px;
+    inline-size: 520px;
+    block-size: 520px;
     object-fit: contain;
 }
 
