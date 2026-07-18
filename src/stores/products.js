@@ -6,7 +6,7 @@ const CATEGORY_STORAGE_KEY = 'fan_del_papel_categories'
 const SUBCATEGORY_STORAGE_KEY = 'fan_del_papel_subcategories'
 
 const DEFAULT_CATEGORIES = [
-  'Papelería',
+ 
   'Sobres chicos + cartas',
   'Sobres grandes + cartas',
   'Cartas simples',
@@ -92,7 +92,7 @@ const normalizeProduct = (row = {}) => {
     id: Number.isFinite(id) ? id : Date.now(),
     nombre,
     slug: normalizeText(row.slug, createSlug(nombre)),
-    categoria: normalizeText(row.categoria, 'Papelería'),
+    categoria: normalizeText(row.categoria, ''),
     subcategoria: normalizeText(row.subcategoria),
     descripcion: normalizeText(row.descripcion, 'Descripción breve del producto.'),
     precio: Number(row.precio) || 0,
@@ -112,7 +112,7 @@ const buildProductRow = (payload = {}, current = {}) => {
   return {
     nombre,
     slug: normalizeText(merged.slug, current.slug || createSlug(nombre)),
-    categoria: normalizeText(merged.categoria, current.categoria || 'Papelería'),
+    categoria: normalizeText(merged.categoria, current.categoria || ''),
     subcategoria: normalizeText(merged.subcategoria, current.subcategoria || ''),
     descripcion: normalizeText(
       merged.descripcion,
@@ -424,7 +424,7 @@ export const useProductsStore = defineStore('products', () => {
     if (!normalized) return false
 
     const fallbackCategory =
-      categoryList.value.find((category) => category !== normalized) || 'Papelería'
+      categoryList.value.find((category) => category !== normalized) || ''
 
     categoryList.value = categoryList.value.filter((category) => category !== normalized)
     products.value = products.value.map((product) =>

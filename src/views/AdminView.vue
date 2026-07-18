@@ -16,7 +16,7 @@ const persistError = ref('')
 const form = ref({
   nombre: '',
   slug: '',
-  categoria: 'Papelería',
+  categoria: '',
   subcategoria: '',
   descripcion: '',
   precio: 0,
@@ -172,7 +172,7 @@ function resetForm() {
   form.value = {
     nombre: '',
     slug: '',
-    categoria: categories.value.length ? categories.value[0] : 'Papelería',
+    categoria: categories.value.length ? categories.value[0] : '',
     subcategoria: '',
     descripcion: '',
     precio: 0,
