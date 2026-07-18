@@ -30,7 +30,7 @@
         <!-- Carrito con Badge (oculto en admin) -->
         <RouterLink v-if="!isAdmin" to="/carrito" class="nav-link-cart" @click="closeMenu">
           <span class="cart-icon">🛒</span>
-          <span class="cart-text">Carrito</span>
+          <span class="cart-text">Pedidos</span>
           <Transition name="pop">
             <span v-if="cartStore.totalItems > 0" class="cart-badge">
               {{ cartStore.totalItems }}

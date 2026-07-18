@@ -98,7 +98,7 @@ setAdminStatus()
           </div>
 
           <button class="add-to-cart" @click="addToCart">
-            <span>Agregar al Carrito</span>
+            <span>Encargar</span>
             <span class="cart-icon">🛒</span>
           </button>
         </div>

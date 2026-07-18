@@ -4,7 +4,7 @@
   --color-primary-hover: #e86f92; /* Rosa hover */
   --color-secondary: #D9E9D3;     /* Verde suave */
   --color-background: #FFF8F2;    /* Fondo cálido */
-  --color-text: #4B4B4B;          /* Texto principal */
+  --color-text: #320e19;          /* Texto principal */
   --color-on-primary: #ffffff;
   
   --color-bg-primary: #ffffff;    /* Fondo principal de tarjetas y contenedores */
@@ -36,7 +36,7 @@
   --shadow-lg: 0 16px 45px rgba(46, 39, 36, 0.08);
 
   /* Fuentes del sistema */
-  --font-title: 'Playfair Display', Georgia, serif;
+  --font-title: 'Outfit' serif;
   --font-body: 'Outfit', sans-serif;
 
   /* Animaciones y Transiciones */

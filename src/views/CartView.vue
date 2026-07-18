@@ -24,11 +24,11 @@ const hasItems = computed(() => (cart.items?.length ?? 0) > 0);
 </template>
 
 <style scoped>
-.cart-page { display: flex; flex-direction: column; gap: 2rem; padding: 2rem; }
+.cart-page { display: flex; flex-direction: column; gap: 2rem; padding: 2rem; color: white; background: var(--color-primary); }
 @media(min-width: 768px) { .cart-page { flex-direction: row; } }
-.items { flex: 2; }
+.items { flex: 2; color: white;}
 .empty-cart { text-align: center; margin-top: 4rem; }
 .go-shop { margin-top: 1rem; color: var(--color-primary); text-decoration: underline; }
-.back-button { color: var(--color-primary); text-decoration: none; font-weight: 700; }
+.back-button { color: white; text-decoration: none; font-weight: 700; }
 .back-button:hover { text-decoration: underline; }
 </style>

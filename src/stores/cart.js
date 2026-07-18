@@ -42,7 +42,7 @@ export const useCartStore = defineStore('cart', () => {
 
   const whatsappMessage = computed(() => {
     if (items.value.length === 0) {
-      return '¡Hola! Mi carrito está vacío.'
+      return '¡Hola! Mi pedido está vacío.'
     }
 
     let message = '¡Hola Fani! Te encargo lo siguiente:\n\n'

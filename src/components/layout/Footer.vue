@@ -19,7 +19,7 @@
         <ul class="links-list">
           <li><RouterLink to="/" class="footer-link">Inicio</RouterLink></li>
           <li><RouterLink to="/catalogo" class="footer-link">Catálogo</RouterLink></li>
-          <li><RouterLink to="/carrito" class="footer-link">Carrito de Compras</RouterLink></li>
+          <li><RouterLink to="/carrito" class="footer-link">Pedidos</RouterLink></li>
         </ul>
       </div>
 
@@ -28,18 +28,14 @@
         <h4 class="section-title">Contacto</h4>
         <ul class="contact-list">
           <li>
-            <a href="https://wa.me/5491100000000" target="_blank" rel="noopener noreferrer" class="contact-link">
+            <a href="https://wa.me/5493564582222" target="_blank" rel="noopener noreferrer" class="contact-link">
               <span class="icon">💬</span> WhatsApp
             </a>
           </li>
+          
           <li>
-            <a href="https://instagram.com/fandelpapel" target="_blank" rel="noopener noreferrer" class="contact-link">
-              <span class="icon">📸</span> Instagram
-            </a>
-          </li>
-          <li>
-            <a href="mailto:hola@fandelpapel.com" class="contact-link">
-              <span class="icon">✉️</span> hola@fandelpapel.com
+            <a href="mailto:fanymar@live.com" class="contact-link">
+              <span class="icon">✉️</span> fanymar@live.com
             </a>
           </li>
         </ul>
@@ -102,7 +98,7 @@
 .handcrafted-badge {
   align-self: flex-start;
   background-color: var(--color-bg-sage);
-  color: var(--color-secondary); /* Verde salvia */
+  color: green; /* Verde salvia */
   padding: 6px 14px;
   border-radius: var(--radius-full);
   font-size: 0.8rem;

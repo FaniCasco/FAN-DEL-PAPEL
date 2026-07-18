@@ -41,13 +41,13 @@ function remove() {
   align-items: center;
   gap: 1rem;
   padding: 0.8rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid black;
 }
 .thumb { width: 80px; height: 80px; object-fit: cover; border-radius: var(--radius-sm); }
 .info { flex: 1; }
 .name { margin: 0; font-size: 1rem; }
 .price { color: var(--color-primary); margin: 0.2rem 0; }
 .qty { display: flex; align-items: center; gap: 0.3rem; }
-.qty button { background: var(--color-bg-secondary); border: none; width: 24px; height: 24px; border-radius: var(--radius-sm); }
+.qty button {  color: black; background: var(--color-bg-secondary); border: none; width: 24px; height: 24px; border-radius: var(--radius-sm); }
 .remove { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--color-danger); }
 </style>

@@ -65,7 +65,7 @@ function goToDetail(event?: Event) {
             <circle cx="9" cy="21" r="1" />
             <circle cx="20" cy="21" r="1" />
           </svg>
-          <span>Agregar</span>
+          <span>Encargar</span>
         </button>
       </div>
     </div>
