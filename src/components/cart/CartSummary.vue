@@ -16,7 +16,7 @@ const totalPriceString = computed(() => {
 const totalItems = computed(() => Number(cart.totalItems ?? 0));
 
 const whatsappURL = computed(() => {
-  const text = (cart.items?.length ?? 0) > 0 ? cart.whatsappMessage : '¡Hola! Mi carrito está vacío.';
+  const text = (cart.items?.length ?? 0) > 0 ? cart.whatsappMessage : '¡Hola! Mi pedido está vacío.';
   const num = (cart.whatsappNumber ?? '').replace(/\s+/g, '');
   return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
 });
@@ -43,7 +43,7 @@ const whatsappURL = computed(() => {
 .checkout-btn {
   display: block;
   text-align: center;
-  background: var(--color-primary);
+  background: green;
   color: var(--color-on-primary);
   padding: 0.8rem;
   border-radius: var(--radius-sm);

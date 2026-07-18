@@ -18,7 +18,7 @@ const hasItems = computed(() => (cart.items?.length ?? 0) > 0);
   </section>
 
   <section v-else class="empty-cart">
-    <h2>El carrito está vacío.</h2>
+    <h2>El pedido está vacío.</h2>
     <router-link to="/catalogo" class="go-shop">Ir al catálogo</router-link>
   </section>
 </template>
