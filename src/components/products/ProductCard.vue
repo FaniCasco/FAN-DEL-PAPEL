@@ -251,8 +251,28 @@ function goToDetail(event?: Event) {
     gap: 8px;
   }
 
+  .badge {
+    font-size: calc(0.75rem + 5px);
+  }
+
+  .category {
+    font-size: calc(0.75rem + 5px);
+  }
+
+  .title {
+    font-size: calc(1.15rem + 5px);
+  }
+
   .price {
-    font-size: 1.1rem;
+    font-size: calc(1.25rem + 5px);
+  }
+
+  .quantity-selector button {
+    font-size: calc(1rem + 5px);
+  }
+
+  .quantity-selector span {
+    font-size: calc(0.95rem + 5px);
   }
 
   .actions {
@@ -269,7 +289,7 @@ function goToDetail(event?: Event) {
     width: 100%;
     justify-content: center;
     padding: 12px 16px;
-    font-size: 1rem;
+    font-size: calc(1rem + 5px);
   }
 }
 </style>

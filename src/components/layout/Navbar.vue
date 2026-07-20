@@ -252,19 +252,24 @@ const closeMenu = () => {
   }
 
   .navbar-container {
-    height: 56px;
-    padding: 0 16px;
+    height: 96px;
+    padding: 0 24px;
+  }
+
+  .logo {
+    margin-left: 4px;
   }
 
   .logo-img {
-    width: 44px;
-    height: 44px;
+    width: 88px;
+    height: 88px;
   }
 
   .mobile-toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    margin-right: 4px;
     z-index: 1001;
   }
 
@@ -329,10 +334,10 @@ const closeMenu = () => {
 
   .nav-menu {
     position: fixed;
-    top: 56px;
+    top: 96px;
     left: 0;
     right: 0;
-    height: calc(100vh - 56px);
+    height: calc(100vh - 96px);
     background-color: var(--color-primary);
     flex-direction: column;
     justify-content: flex-start;
@@ -353,7 +358,7 @@ const closeMenu = () => {
   }
 
   .nav-link {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     font-family: var(--font-title);
     font-weight: 600;
     color: #ffffff;

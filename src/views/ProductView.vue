@@ -509,4 +509,11 @@ function formatPrice(val?: number) {
 .fade-leave-to {
   opacity: 0;
 }
+
+@media (max-width: 767px) {
+  .description {
+    font-size: calc(1.05rem + 5px);
+    line-height: 1.65;
+  }
+}
 </style>

@@ -105,6 +105,16 @@ function selectSubcategory(subcategory: string) {
     max-height: none;
     margin-bottom: 8px;
   }
+
+  .sidebar-heading p,
+  .eyebrow {
+    font-size: 21px;
+  }
+
+  .category-button,
+  .subcategory-button {
+    font-size: 21px;
+  }
 }
 
 .sidebar-heading {
