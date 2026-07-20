@@ -134,11 +134,10 @@ export const useProductsStore = defineStore('products', () => {
   let loadPromise = null
 
   const syncCategoryListFromProducts = () => {
-    categoryList.value = normalizeCategoryList([
-      ...DEFAULT_CATEGORIES,
-      ...categoryList.value,
-      ...products.value.map((product) => product.categoria),
-    ])
+    const fromProducts = products.value
+      .map((product) => product.categoria)
+      .filter(Boolean)
+    categoryList.value = normalizeCategoryList([...categoryList.value, ...fromProducts])
   }
 
   const syncSubcategoryMapFromProducts = () => {
@@ -167,7 +166,9 @@ export const useProductsStore = defineStore('products', () => {
     const savedSubcategories = readJson(SUBCATEGORY_STORAGE_KEY, {})
 
     if (Array.isArray(savedCategories) && savedCategories.length) {
-      categoryList.value = normalizeCategoryList([...DEFAULT_CATEGORIES, ...savedCategories])
+      categoryList.value = normalizeCategoryList(savedCategories)
+    } else {
+      categoryList.value = normalizeCategoryList([...DEFAULT_CATEGORIES])
     }
 
     if (savedSubcategories && typeof savedSubcategories === 'object') {
@@ -195,13 +196,7 @@ export const useProductsStore = defineStore('products', () => {
     { deep: true }
   )
 
-  const categories = computed(() =>
-    normalizeCategoryList([
-      ...DEFAULT_CATEGORIES,
-      ...categoryList.value,
-      ...products.value.map((product) => product.categoria),
-    ])
-  )
+  const categories = computed(() => normalizeCategoryList(categoryList.value))
 
   const buildSupabaseError = (fallbackMessage) =>
     supabaseConfigError || new Error(fallbackMessage)
@@ -395,11 +390,24 @@ export const useProductsStore = defineStore('products', () => {
     return true
   }
 
-  function updateCategory(oldName, newName) {
+  async function updateCategory(oldName, newName) {
     const previousName = normalizeText(oldName)
     const normalized = normalizeText(newName)
     if (!previousName || !normalized || normalized === previousName) return false
     if (categoryList.value.includes(normalized)) return false
+
+    const affectedIds = products.value
+      .filter((product) => product.categoria === previousName)
+      .map((product) => product.id)
+
+    if (supabase && affectedIds.length > 0) {
+      const { error } = await supabase
+        .from('products')
+        .update({ categoria: normalized })
+        .in('id', affectedIds)
+
+      if (error) return false
+    }
 
     categoryList.value = categoryList.value.map((category) =>
       category === previousName ? normalized : category
@@ -419,12 +427,25 @@ export const useProductsStore = defineStore('products', () => {
     return true
   }
 
-  function removeCategory(name) {
+  async function removeCategory(name) {
     const normalized = normalizeText(name)
     if (!normalized) return false
 
     const fallbackCategory =
       categoryList.value.find((category) => category !== normalized) || ''
+
+    const affectedIds = products.value
+      .filter((product) => product.categoria === normalized)
+      .map((product) => product.id)
+
+    if (supabase && affectedIds.length > 0) {
+      const { error } = await supabase
+        .from('products')
+        .update({ categoria: fallbackCategory })
+        .in('id', affectedIds)
+
+      if (error) return false
+    }
 
     categoryList.value = categoryList.value.filter((category) => category !== normalized)
     products.value = products.value.map((product) =>

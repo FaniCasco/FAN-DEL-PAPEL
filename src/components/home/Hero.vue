@@ -156,4 +156,30 @@ p{
 
 }
 
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    padding: 24px 16px;
+    min-block-size: auto;
+    text-align: center;
+  }
+
+  .hero-content {
+    inline-size: 100%;
+  }
+
+  .hero-brand {
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 24px;
+    line-height: 1.3;
+  }
+
+  .hero-image {
+    display: none;
+  }
+}
+
 </style>
