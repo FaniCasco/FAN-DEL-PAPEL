@@ -177,7 +177,7 @@ async function handleTogglePagado(order, event) {
       <p v-if="selectedOrder.notas"><strong>Notas:</strong> {{ selectedOrder.notas }}</p>
       <ul class="items-list">
         <li v-for="item in selectedOrder.items" :key="`${item.id}-${item.nombre}`">
-          {{ item.nombre }} x{{ item.quantity }} — {{ formatPrice(item.precio * item.quantity) }}
+          {{ item.categoria ? item.categoria + ': ' : '' }}{{ item.nombre }}{{ item.subcategoria ? ' (' + item.subcategoria + ')' : '' }} x{{ item.quantity }} — {{ formatPrice(item.precio * item.quantity) }}
         </li>
       </ul>
       <p class="detail-total"><strong>Total:</strong> {{ formatPrice(selectedOrder.total) }}</p>
