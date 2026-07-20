@@ -59,8 +59,8 @@
 
 <style scoped>
 .footer {
-  background-color: #FAF6F0; /* Un tono ligeramente más cálido y oscuro que el lino principal para dar base */
-  border-top: 1px solid rgba(212, 163, 115, 0.25); /* Dorado muy sutil */
+  background-color: #f8799f; /* Un tono ligeramente más cálido y oscuro que el lino principal para dar base */
+  border-top: 1px solid rgba(254, 253, 251, 0.25); /* Dorado muy sutil */
   padding: 60px 0 0 0;
   margin-top: auto; /* Para empujar el footer al fondo si el contenido es corto */
 }
@@ -84,12 +84,12 @@
 .brand-title {
   font-family: var(--font-title);
   font-size: 2rem;
-  color: var(--color-primary); /* Terracota */
+  color: white; /* Terracota */
   font-weight: 700;
 }
 
 .brand-description {
-  color: var(--color-gray);
+  color: white;
   max-width: 360px;
   font-size: 0.95rem;
   line-height: 1.6;
@@ -110,7 +110,7 @@
 .section-title {
   font-family: var(--font-title);
   font-size: 1.25rem;
-  color: var(--color-text);
+  color: white;
   margin-bottom: 20px;
   position: relative;
   font-weight: 600;
@@ -140,7 +140,7 @@
 .contact-link {
   font-family: var(--font-body);
   font-size: 0.95rem;
-  color: var(--color-gray);
+  color: white;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -148,8 +148,11 @@
 
 .footer-link:hover,
 .contact-link:hover {
+  background: white;
   color: var(--color-primary);
   transform: translateX(4px);
+  padding: 5px;
+   border-radius: var(--radius-full);
 }
 
 .contact-link .icon {
@@ -177,7 +180,7 @@
 .copyright,
 .craft-tagline {
   font-size: 0.85rem;
-  color: var(--color-gray);
+  color: white;
   margin: 0;
 }
 
