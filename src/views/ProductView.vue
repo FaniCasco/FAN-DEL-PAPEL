@@ -11,8 +11,6 @@ const products = computed(() => productsStore.products);
 
 const route = useRoute();
 const cartStore = useCartStore();
-const isAdmin = ref(false);
-
 const product = ref<any>(null);
 const quantity = ref(1);
 const added = ref(false);
@@ -47,13 +45,6 @@ function formatPrice(val?: number) {
   return val ? `$${val.toLocaleString('es-AR')}` : '';
 }
 
-function setAdminStatus() {
-  if (typeof window !== 'undefined') {
-    isAdmin.value = window.sessionStorage.getItem('isAdmin') === 'true'
-  }
-}
-
-setAdminStatus()
 </script>
 
 <template>
@@ -87,7 +78,7 @@ setAdminStatus()
           </div>
         </div>
 
-        <div v-if="!isAdmin" class="purchase-section">
+        <div class="purchase-section">
           <div class="quantity-wrapper">
             <span class="quantity-label">Cantidad</span>
             <div class="quantity-selector">

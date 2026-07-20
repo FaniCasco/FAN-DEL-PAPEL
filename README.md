@@ -34,9 +34,12 @@ on conflict (id) do update
 set public = true;
 ```
 
+## SQL para pedidos
+
+Ejecutá el script `supabase/orders.sql` en el SQL Editor de Supabase para crear la tabla de pedidos.
+
 ## Policies mínimas de Storage
 
-```sql
 alter table storage.objects enable row level security;
 
 drop policy if exists "Public read product images" on storage.objects;

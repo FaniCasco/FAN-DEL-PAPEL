@@ -2,19 +2,32 @@
 import { useCartStore } from '@/stores/cart';
 import CartItem from '@/components/cart/CartItem.vue';
 import CartSummary from '@/components/cart/CartSummary.vue';
-import { computed } from 'vue';
+import CheckoutForm from '@/components/cart/CheckoutForm.vue';
+import { computed, ref } from 'vue';
 
 const cart = useCartStore();
 const hasItems = computed(() => (cart.items?.length ?? 0) > 0);
+const orderConfirmed = ref(false);
+
+function handleOrderSubmitted() {
+  orderConfirmed.value = true;
+}
 </script>
 
 <template>
   <section class="cart-page" v-if="hasItems">
     <RouterLink to="/catalogo" class="back-button">← Volver al catálogo</RouterLink>
-    <div class="items">
-      <CartItem v-for="item in cart.items" :key="item.id" :item="item" />
+
+    <div class="cart-layout">
+      <div class="items">
+        <CartItem v-for="item in cart.items" :key="item.id" :item="item" />
+      </div>
+
+      <aside class="checkout-panel">
+        <CheckoutForm v-if="!orderConfirmed" @submitted="handleOrderSubmitted" />
+        <CartSummary v-else />
+      </aside>
     </div>
-    <CartSummary />
   </section>
 
   <section v-else class="empty-cart">
@@ -24,11 +37,57 @@ const hasItems = computed(() => (cart.items?.length ?? 0) > 0);
 </template>
 
 <style scoped>
-.cart-page { display: flex; flex-direction: column; gap: 2rem; padding: 2rem; color: white; background: var(--color-primary); }
-@media(min-width: 768px) { .cart-page { flex-direction: row; } }
-.items { flex: 2; color: white;}
-.empty-cart { text-align: center; margin-top: 4rem; }
-.go-shop { margin-top: 1rem; color: var(--color-primary); text-decoration: underline; }
-.back-button { color: white; text-decoration: none; font-weight: 700; }
-.back-button:hover { text-decoration: underline; }
+.cart-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  color: white;
+  background: var(--color-primary);
+}
+
+.cart-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.items {
+  flex: 2;
+  color: white;
+  display: grid;
+  gap: 1rem;
+}
+
+.checkout-panel {
+  flex: 1;
+}
+
+.empty-cart {
+  text-align: center;
+  margin-top: 4rem;
+}
+
+.go-shop {
+  margin-top: 1rem;
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.back-button {
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .cart-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
 </style>

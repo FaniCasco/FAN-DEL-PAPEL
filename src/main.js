@@ -4,6 +4,7 @@ import App from './App.vue'
 
 import router from './router'
 import { useProductsStore } from './stores/products'
+import { useOrdersStore } from './stores/orders'
 import './styles/global.css'
 
 const bootstrap = async () => {
@@ -14,7 +15,8 @@ const bootstrap = async () => {
   app.use(router)
 
   const productsStore = useProductsStore(pinia)
-  await productsStore.loadProducts()
+  const ordersStore = useOrdersStore(pinia)
+  await Promise.all([productsStore.loadProducts(), ordersStore.loadOrders()])
 
   app.mount('#app')
 }

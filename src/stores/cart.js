@@ -5,6 +5,7 @@ export const WHATSAPP_NUMBER = '+54 9 3564582222'
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
+  const customerInfo = ref(null)
 
   const storedCart = localStorage.getItem('fan_del_papel_cart')
   if (storedCart) {
@@ -46,6 +47,13 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     let message = '¡Hola Fani! Te encargo lo siguiente:\n\n'
+
+    if (customerInfo.value) {
+      message += `*Datos del cliente:*\n`
+      message += `Nombre: ${customerInfo.value.nombreApellido}\n`
+      message += `Teléfono: ${customerInfo.value.telefono}\n`
+      message += `Forma de pago: ${customerInfo.value.formaPago === 'transferencia' ? 'Transferencia' : 'Efectivo'}\n\n`
+    }
 
     items.value.forEach((item) => {
       const priceFormatted = formatCurrency(item.precio)
@@ -95,10 +103,16 @@ export const useCartStore = defineStore('cart', () => {
 
   function clearCart() {
     items.value = []
+    customerInfo.value = null
+  }
+
+  function setCustomerInfo(info) {
+    customerInfo.value = info
   }
 
   return {
     items,
+    customerInfo,
     whatsappNumber: WHATSAPP_NUMBER,
     totalItems,
     totalPrice,
@@ -107,5 +121,6 @@ export const useCartStore = defineStore('cart', () => {
     removeFromCart,
     updateQuantity,
     clearCart,
+    setCustomerInfo,
   }
 })

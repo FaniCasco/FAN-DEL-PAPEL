@@ -1,15 +1,19 @@
 ﻿<script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useProductsStore } from '@/stores/products'
+import { useOrdersStore } from '@/stores/orders'
 import {
   deleteSupabaseStorageUrls,
   isSupabaseStorageUrl,
   uploadProductImage,
 } from '@/lib/supabaseStorage'
 import { useRouter } from 'vue-router'
+import AdminOrders from '@/components/admin/AdminOrders.vue'
 
 const productsStore = useProductsStore()
+const ordersStore = useOrdersStore()
 const router = useRouter()
+const activeSection = ref(null)
 const selectedProductId = ref(null)
 const editingProduct = ref(null)
 const persistError = ref('')
@@ -31,6 +35,7 @@ const productImageList = ref([])
 const isUploadingImages = ref(false)
 
 const products = computed(() => productsStore.products)
+const ordersCount = computed(() => ordersStore.orders.length)
 const categories = computed(() => productsStore.categories)
 const subcategories = computed(() => productsStore.getSubcategories(form.value.categoria))
 
@@ -122,9 +127,9 @@ async function clearCatalog() {
 }
 
 function logout() {
-  // Clear admin flag and redirect to admin login
   sessionStorage.removeItem('isAdmin')
   window.dispatchEvent(new Event('admin-status-changed'))
+  activeSection.value = null
   selectedProductId.value = null
   editingProduct.value = null
   resetForm()
@@ -333,7 +338,19 @@ function onPersistError() {
 
 onMounted(() => {
   window.addEventListener('fan-del-papel:persist-error', onPersistError)
+  ordersStore.loadOrders()
 })
+
+function openSection(section) {
+  activeSection.value = section
+}
+
+function backToDashboard() {
+  activeSection.value = null
+  selectedProductId.value = null
+  editingProduct.value = null
+  resetForm()
+}
 
 onUnmounted(() => {
   window.removeEventListener('fan-del-papel:persist-error', onPersistError)
@@ -461,12 +478,62 @@ async function updateCategoryName() {
 
 <template>
   <section class="admin-page">
-    <div class="admin-shell">
+    <div class="admin-dashboard">
+      <header class="dashboard-header">
+        <div>
+          <h1>Panel de administración</h1>
+          <RouterLink to="/catalogo" class="back-button">← Volver al catálogo</RouterLink>
+        </div>
+        <button class="ghost" @click="logout">Cerrar sesión</button>
+      </header>
+
+      <div v-if="!activeSection" class="dashboard-home">
+        <p class="dashboard-intro">Elegí qué querés administrar:</p>
+        <div class="dashboard-cards">
+          <button type="button" class="dashboard-card" @click="openSection('catalog')">
+            <span class="card-icon" aria-hidden="true">📦</span>
+            <h2>Administrar catálogo</h2>
+            <p>Agregá categorías, subcategorías y productos.</p>
+            <span class="card-meta">{{ categories.length }} categorías · {{ products.length }} productos</span>
+          </button>
+          <button type="button" class="dashboard-card" @click="openSection('orders')">
+            <span class="card-icon" aria-hidden="true">📋</span>
+            <h2>Pedidos</h2>
+            <p>Ver, editar, eliminar y marcar si está pagado.</p>
+            <span class="card-meta">{{ ordersCount }} pedidos registrados</span>
+          </button>
+        </div>
+      </div>
+
+      <template v-else>
+        <nav class="dashboard-nav">
+          <button type="button" class="ghost back-dashboard" @click="backToDashboard">← Dashboard</button>
+          <button
+            type="button"
+            class="nav-tab"
+            :class="{ active: activeSection === 'catalog' }"
+            @click="openSection('catalog')"
+          >
+            Administrar catálogo
+          </button>
+          <button
+            type="button"
+            class="nav-tab"
+            :class="{ active: activeSection === 'orders' }"
+            @click="openSection('orders')"
+          >
+            Pedidos
+          </button>
+        </nav>
+
+        <div v-if="activeSection === 'orders'" class="section-panel">
+          <AdminOrders :active="activeSection === 'orders'" />
+        </div>
+
+        <div v-else class="admin-shell">
       <div class="admin-sidebar">
         <div class="sidebar-header">
-          <h2>Administración</h2>
-          <RouterLink to="/catalogo" class="back-button">← Volver al catálogo</RouterLink>
-          <button class="ghost" @click="logout">Cerrar sesión</button>
+          <h2>Catálogo</h2>
         </div>
 
         <button type="button" class="primary" @click="startCreate">+ Nuevo producto</button>
@@ -663,6 +730,8 @@ async function updateCategoryName() {
         <p v-if="saveFeedback" class="save-feedback">{{ saveFeedback }}</p>
         <p v-if="persistError" class="form-error">{{ persistError }}</p>
       </div>
+      </div>
+      </template>
     </div>
   </section>
 </template>
@@ -672,6 +741,105 @@ async function updateCategoryName() {
   background: var(--color-background);
   min-height: 100vh;
   padding: 2rem 0;
+}
+.admin-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  gap: 1.5rem;
+}
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.dashboard-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+}
+.dashboard-nav {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.back-dashboard {
+  margin-right: auto;
+}
+.dashboard-home {
+  display: grid;
+  gap: 1.25rem;
+}
+.dashboard-intro {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+}
+.dashboard-cards {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+}
+.dashboard-card {
+  display: grid;
+  gap: 0.65rem;
+  text-align: left;
+  padding: 1.5rem;
+  border: 1px solid rgba(192, 92, 62, 0.15);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-primary);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.dashboard-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(75, 75, 75, 0.08);
+  border-color: rgba(248, 121, 159, 0.35);
+}
+.dashboard-card h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--color-text);
+}
+.dashboard-card p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+.card-icon {
+  font-size: 1.75rem;
+}
+.card-meta {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.section-panel {
+  background: var(--color-bg-primary);
+  border: 1px solid rgba(192, 92, 62, 0.15);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+}
+.nav-tab {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: white;
+  color: var(--color-text);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.nav-tab.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 .login-card, .admin-shell {
   background: var(--color-bg-primary);
@@ -968,6 +1136,9 @@ label textarea {
   }
 }
 @media (max-width: 900px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
   .admin-shell { grid-template-columns: 1fr; }
   .admin-sidebar {
     order: 2;

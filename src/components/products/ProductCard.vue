@@ -9,16 +9,6 @@ const props = defineProps<{ product: Product }>();
 const cartStore = useCartStore();
 const router = useRouter();
 const quantity = ref(1);
-const isAdmin = ref(false);
-
-function updateAdminStatus() {
-  isAdmin.value = typeof window !== 'undefined' && window.sessionStorage.getItem('isAdmin') === 'true'
-}
-
-if (typeof window !== 'undefined') {
-  updateAdminStatus()
-  window.addEventListener('admin-status-changed', updateAdminStatus)
-}
 
 function handleAddToCart(event?: Event) {
   event?.stopPropagation();
@@ -54,12 +44,12 @@ function goToDetail(event?: Event) {
         <p class="price">{{ `$${props.product.precio.toLocaleString('es-AR')}` }}</p>
       </div>
       <div class="actions">
-        <div v-if="!isAdmin" class="quantity-selector">
+        <div class="quantity-selector">
           <button @click="decrement">−</button>
           <span>{{ quantity }}</span>
           <button @click="increment">+</button>
         </div>
-        <button v-if="!isAdmin" class="btn-cart" @click="handleAddToCart">
+        <button class="btn-cart" @click="handleAddToCart">
           <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" stroke="currentColor" fill="none">
             <path d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
             <circle cx="9" cy="21" r="1" />
@@ -99,7 +89,7 @@ function goToDetail(event?: Event) {
   width: 100%;
   height: 200px;
   object-fit: contain;
-  background-color: var(--color-bg-sage);
+  background-color: var(--color-primary);
   padding: 12px;
   box-sizing: border-box;
   transition: var(--transition-smooth);
@@ -137,10 +127,10 @@ function goToDetail(event?: Event) {
 }
 
 .content {
-  padding: var(--spacing-base);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   flex-grow: 1;
   justify-content: space-between;
 }
@@ -248,5 +238,38 @@ function goToDetail(event?: Event) {
 .icon {
   width: 1.1rem;
   height: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .price {
+    font-size: 1.1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .quantity-selector {
+    justify-content: center;
+  }
+
+  .btn-cart {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+  }
 }
 </style>

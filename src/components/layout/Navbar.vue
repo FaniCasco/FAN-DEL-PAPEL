@@ -1,36 +1,55 @@
 <template>
   <header class="navbar-header">
     <div class="navbar-container">
-      <!-- Logo -->
       <div class="logo">
-        <RouterLink to="/" class="logo-link">
+        <RouterLink to="/" class="logo-link" @click="closeMenu">
           <img :src="logo" alt="Fan del Papel" class="logo-img" />
         </RouterLink>
       </div>
 
-      <!-- Hamburger Button (Mobile) -->
-      <button 
-        class="menu-toggle" 
-        :class="{ 'is-active': isMenuOpen }" 
-        @click="toggleMenu"
-        aria-label="Menu de navegación"
-        :aria-expanded="isMenuOpen"
-      >
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-      </button>
+      <div class="mobile-toolbar">
+        <RouterLink
+          to="/carrito"
+          class="toolbar-btn cart-toolbar-btn"
+          aria-label="Ver carrito"
+          @click="closeMenu"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+          <Transition name="pop">
+            <span v-if="cartStore.totalItems > 0" class="toolbar-badge">
+              {{ cartStore.totalItems }}
+            </span>
+          </Transition>
+        </RouterLink>
 
-      <!-- Navigation Links -->
+        <button
+          class="menu-toggle"
+          :class="{ 'is-active': isMenuOpen }"
+          @click="toggleMenu"
+          aria-label="Menú de navegación"
+          :aria-expanded="isMenuOpen"
+        >
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+
       <nav class="nav-menu" :class="{ 'is-open': isMenuOpen }">
         <RouterLink to="/" class="nav-link" @click="closeMenu">Inicio</RouterLink>
         <RouterLink to="/catalogo" class="nav-link" @click="closeMenu">Catálogo</RouterLink>
-        <RouterLink v-if="isAdmin" to="/admin-panel" class="nav-link" @click="closeMenu">Admin</RouterLink>
-        
-        <!-- Carrito con Badge (oculto en admin) -->
-        <RouterLink v-if="!isAdmin" to="/carrito" class="nav-link-cart" @click="closeMenu">
-          <span class="cart-icon">🛒</span>
-          <span class="cart-text">Pedidos</span>
+
+        <RouterLink to="/carrito" class="nav-link-cart desktop-cart" @click="closeMenu">
+          <svg class="cart-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+          <span class="cart-text">Carrito</span>
           <Transition name="pop">
             <span v-if="cartStore.totalItems > 0" class="cart-badge">
               {{ cartStore.totalItems }}
@@ -43,22 +62,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useCartStore } from '../../stores/cart'
 import logo from '@/assets/images/logo.png'
 
 const cartStore = useCartStore()
 const isMenuOpen = ref(false)
-const isAdmin = ref(false)
-
-function updateAdminStatus() {
-  isAdmin.value = typeof window !== 'undefined' && window.sessionStorage.getItem('isAdmin') === 'true'
-}
-
-onMounted(() => {
-  updateAdminStatus()
-  window.addEventListener('admin-status-changed', updateAdminStatus)
-})
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
@@ -70,10 +79,9 @@ const closeMenu = () => {
 </script>
 
 <style scoped>
-/* Estilos premium de Navbar */
 .navbar-header {
   background-color: var(--color-background);
-  border-bottom: 1px solid rgba(212, 163, 115, 0.2); /* Dorado muy sutil */
+  border-bottom: 1px solid rgba(212, 163, 115, 0.2);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -91,7 +99,6 @@ const closeMenu = () => {
   height: 120px;
 }
 
-/* Logo */
 .logo-link {
   display: inline-flex;
   align-items: center;
@@ -105,12 +112,10 @@ const closeMenu = () => {
   object-fit: contain;
 }
 
-.logo-text,
-.logo-subtext {
+.mobile-toolbar {
   display: none;
 }
 
-/* Menú de Navegación Desktop */
 .nav-menu {
   display: flex;
   align-items: center;
@@ -126,7 +131,6 @@ const closeMenu = () => {
   padding: 6px 0;
 }
 
-/* Línea animada en Hover */
 .nav-link::after {
   content: '';
   position: absolute;
@@ -157,7 +161,6 @@ const closeMenu = () => {
   transform: scaleX(1);
 }
 
-/* Botón Carrito */
 .nav-link-cart {
   display: flex;
   align-items: center;
@@ -184,6 +187,14 @@ const closeMenu = () => {
   font-size: 1.1rem;
 }
 
+.cart-svg {
+  flex-shrink: 0;
+}
+
+.desktop-cart {
+  display: flex;
+}
+
 .cart-badge {
   background-color: #ff0000;
   color: #ffffff;
@@ -203,7 +214,6 @@ const closeMenu = () => {
   box-shadow: var(--shadow-sm);
 }
 
-/* Animación del Badge */
 .pop-enter-active {
   animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -215,7 +225,6 @@ const closeMenu = () => {
   100% { transform: scale(1); }
 }
 
-/* Mobile Toggle */
 .menu-toggle {
   display: none;
   flex-direction: column;
@@ -226,6 +235,7 @@ const closeMenu = () => {
   border: none;
   cursor: pointer;
   z-index: 1001;
+  padding: 0;
 }
 
 .hamburger-line {
@@ -235,16 +245,77 @@ const closeMenu = () => {
   transition: var(--transition);
 }
 
-/* Responsive & Mobile Menu */
 @media (max-width: 768px) {
+  .navbar-header {
+    background-color: var(--color-primary);
+    border-bottom: none;
+  }
+
+  .navbar-container {
+    height: 56px;
+    padding: 0 16px;
+  }
+
+  .logo-img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mobile-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1001;
+  }
+
+  .toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: #ffffff;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+    position: relative;
+  }
+
+  .cart-toolbar-btn {
+    text-decoration: none;
+  }
+
+  .toolbar-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: #ffffff;
+    color: var(--color-primary);
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+  }
+
+  .toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
   .menu-toggle {
     display: flex;
   }
 
-  /* Hamburger Animado */
+  .hamburger-line {
+    background-color: #ffffff;
+  }
+
   .menu-toggle.is-active .hamburger-line:nth-child(1) {
     transform: translateY(7px) rotate(45deg);
-    background-color: var(--color-primary);
+    background-color: #ffffff;
   }
 
   .menu-toggle.is-active .hamburger-line:nth-child(2) {
@@ -253,28 +324,26 @@ const closeMenu = () => {
 
   .menu-toggle.is-active .hamburger-line:nth-child(3) {
     transform: translateY(-7px) rotate(-45deg);
-    background-color: var(--color-primary);
+    background-color: #ffffff;
   }
 
-  /* Menú desplegable Mobile */
   .nav-menu {
     position: fixed;
-    top: 0;
+    top: 56px;
     left: 0;
     right: 0;
-    height: 100vh;
-    background-color: rgba(252, 251, 247, 0.97); /* Cream lino con alta opacidad */
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    height: calc(100vh - 56px);
+    background-color: var(--color-primary);
     flex-direction: column;
-    justify-content: center;
-    gap: 36px;
-    padding: 40px;
-    transform: translateY(-100%);
+    justify-content: flex-start;
+    gap: 0;
+    padding: 24px 20px 40px;
+    transform: translateY(-110%);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 999;
+    overflow-y: auto;
   }
 
   .nav-menu.is-open {
@@ -284,17 +353,54 @@ const closeMenu = () => {
   }
 
   .nav-link {
-    font-size: 1.6rem;
+    font-size: 1.25rem;
     font-family: var(--font-title);
     font-weight: 600;
+    color: #ffffff;
+    width: 100%;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .nav-link::after {
+    display: none;
+  }
+
+  .nav-link:hover,
+  .router-link-active:not(.logo-link):not(.nav-link-cart) {
+    color: #ffffff;
+    opacity: 0.85;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-menu-cart,
+  .desktop-cart {
+    display: none;
   }
 
   .nav-link-cart {
-    font-size: 1.2rem;
-    padding: 12px 24px;
+    margin-top: 20px;
     width: 100%;
-    max-width: 240px;
+    max-width: none;
     justify-content: center;
+    background: #ffffff;
+    color: var(--color-primary);
+    font-size: 1.1rem;
+    padding: 14px 24px;
+    border: none;
+  }
+
+  .nav-link-cart:hover {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-primary);
+    transform: none;
+  }
+
+  .cart-badge {
+    border-color: #ffffff;
   }
 }
 </style>
