@@ -42,7 +42,7 @@
       <nav class="nav-menu" :class="{ 'is-open': isMenuOpen }">
         <RouterLink to="/" class="nav-link" @click="closeMenu">Inicio</RouterLink>
         <RouterLink to="/catalogo" class="nav-link" @click="closeMenu">Catálogo</RouterLink>
-<RouterLink to="/sobre-mi" class="nav-link" @click="closeMenu">Sobre mí</RouterLink>
+<RouterLink to="/sobre-mi" class="nav-link" @click="closeMenu">Acerca de mí</RouterLink>
 
         <RouterLink to="/carrito" class="nav-link-cart desktop-cart" @click="closeMenu">
           <svg class="cart-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
