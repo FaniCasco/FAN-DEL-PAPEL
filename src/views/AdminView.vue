@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useProductsStore } from '@/stores/products'
 import { useOrdersStore } from '@/stores/orders'
@@ -9,9 +9,13 @@ import {
 } from '@/lib/supabaseStorage'
 import { useRouter } from 'vue-router'
 import AdminOrders from '@/components/admin/AdminOrders.vue'
+import AdminAbout from '@/components/admin/AdminAbout.vue'
+import AdminMessages from '@/components/admin/AdminMessages.vue'
+import { useMessagesStore } from '@/stores/messages'
 
 const productsStore = useProductsStore()
 const ordersStore = useOrdersStore()
+const messagesStore = useMessagesStore()
 const router = useRouter()
 const activeSection = ref(null)
 const selectedProductId = ref(null)
@@ -38,6 +42,7 @@ const products = computed(() => productsStore.products)
 const ordersCount = computed(() => ordersStore.orders.length)
 const categories = computed(() => productsStore.categories)
 const subcategories = computed(() => productsStore.getSubcategories(form.value.categoria))
+const unreadMessagesCount = computed(() => messagesStore.unreadCount)
 
 watch(
   () => form.value.categoria,
@@ -502,6 +507,17 @@ async function updateCategoryName() {
             <p>Ver, editar, eliminar y marcar si está pagado.</p>
             <span class="card-meta">{{ ordersCount }} pedidos registrados</span>
           </button>
+          <button type="button" class="dashboard-card" @click="openSection('about')">
+            <span class="card-icon" aria-hidden="true">👤</span>
+            <h2>Sobre Mí</h2>
+            <p>Editar la cabecera y el contenido de la sección.</p>
+          </button>
+          <button type="button" class="dashboard-card" @click="openSection('messages')">
+            <span class="card-icon" aria-hidden="true">✉️</span>
+            <h2>Mensajes</h2>
+            <p>Leer y responder consultas.</p>
+            <span class="card-meta" v-if="unreadMessagesCount > 0">{{ unreadMessagesCount }} nuevos</span>
+          </button>
         </div>
       </div>
 
@@ -524,10 +540,35 @@ async function updateCategoryName() {
           >
             Pedidos
           </button>
+          <button
+            type="button"
+            class="nav-tab"
+            :class="{ active: activeSection === 'about' }"
+            @click="openSection('about')"
+          >
+            Sobre Mí
+          </button>
+          <button
+            type="button"
+            class="nav-tab"
+            :class="{ active: activeSection === 'messages' }"
+            @click="openSection('messages')"
+          >
+            Mensajes
+            <span v-if="unreadMessagesCount > 0" class="badge-tab">{{ unreadMessagesCount }}</span>
+          </button>
         </nav>
 
         <div v-if="activeSection === 'orders'" class="section-panel">
           <AdminOrders :active="activeSection === 'orders'" />
+        </div>
+
+        <div v-else-if="activeSection === 'about'" class="section-panel">
+          <AdminAbout />
+        </div>
+
+        <div v-else-if="activeSection === 'messages'" class="section-panel">
+          <AdminMessages />
         </div>
 
         <div v-else class="admin-shell">
@@ -798,7 +839,20 @@ async function updateCategoryName() {
 .dashboard-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 24px rgba(75, 75, 75, 0.08);
-  border-color: rgba(248, 121, 159, 0.35);
+  border-color: rgba(192, 92, 62, 0.25);
+}
+.badge-tab {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+.nav-tab.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 .dashboard-card h2 {
   margin: 0;
@@ -866,6 +920,7 @@ button {
   padding: 0.75rem 1rem;
   cursor: pointer;
   font-weight: 600;
+  
 }
 .file-upload {
   display: inline-flex;
@@ -1011,6 +1066,7 @@ button {
   padding: 0.25rem;
   border-radius: 999px;
   transition: background 0.2s ease;
+  
 }
 .icon-button:hover {
   background: rgba(179, 58, 58, 0.12);
