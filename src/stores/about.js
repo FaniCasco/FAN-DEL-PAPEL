@@ -107,25 +107,19 @@ async function saveAboutContent(newData) {
     // Upsert using the primary key "id". Guarantees INSERT on first run and UPDATE thereafter.
     const { data, error: sbError } = await supabase
       .from('about_content')
-      .upsert({ id: 1, hero: newData.hero, sections: newData.sections }, { onConflict: 'id' })
+      .upsert({ id: 1, hero: newData.hero, sections: newData.sections }, { onConflict: 'id', returning: 'representation' })
       .select()
 
-    if (sbError) throw sbError
-    hero.value = newData.hero
-    sections.value = newData.sections
-    return { ok: true }
-  } catch (err) {
-    console.warn('Error al guardar en Supabase', err)
-    // Optional local fallback – kept for offline support.
-    try {
-      localStorage.setItem('about_content', JSON.stringify(newData))
+    if (sbError) {
+        console.error('❌ Supabase upsert error details:', sbError)
+        throw sbError
+      }
       hero.value = newData.hero
       sections.value = newData.sections
-      return { ok: true, fallback: true }
-    } catch (localErr) {
-      console.error('Fallo al guardar en localStorage', localErr)
-      return { ok: false, error: err?.message || 'Error desconocido al guardar' }
-    }
+      return { ok: true }
+  } catch (err) {
+    console.error('❌ Error al guardar en Supabase', err)
+    return { ok: false, error: err?.message || 'Error al guardar' }
   }
 }
 
