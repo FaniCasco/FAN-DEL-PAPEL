@@ -37,6 +37,14 @@ ON public.about_content FOR INSERT
 TO authenticated 
 WITH CHECK (true);
 
+-- PUBLIC can INSERT/UPDATE because the table only ever holds a single row (id = 1)
+CREATE POLICY "Public puede crear/actualizar Sobre Mí"
+  ON public.about_content
+  FOR INSERT, UPDATE
+  TO public
+  USING (true)
+  WITH CHECK (true);
+
 -- Insertar valores por defecto (si no existe)
 INSERT INTO public.about_content (id, hero, sections)
 VALUES (
