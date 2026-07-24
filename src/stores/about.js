@@ -61,12 +61,9 @@ export const useAboutStore = defineStore('about', () => {
          loadFromLocal()
       }
     } catch (err) {
-      console.warn('Error fetching about content from Supabase, falling back to local.', err)
-      error.value = err.message
-      loadFromLocal()
-    } finally {
-      isLoading.value = false
-    }
+  console.error('SUPABASE ERROR:', err)
+  alert(JSON.stringify(err))
+}
   }
 
   function loadFromLocal() {
