@@ -18,7 +18,7 @@
         <h4 class="section-title">Explorá</h4>
         <ul class="links-list">
           <li><RouterLink to="/" class="footer-link">Inicio</RouterLink></li>
-          <li><RouterLink to="/about" class="footer-link">Acerca de mí</RouterLink></li>
+          <li><RouterLink to="/sobre-mi" class="footer-link">Acerca de mí</RouterLink></li>
           <li><RouterLink to="/catalogo" class="footer-link">Catálogo</RouterLink></li>
           <li><RouterLink to="/carrito" class="footer-link">Pedidos</RouterLink></li>
         </ul>
