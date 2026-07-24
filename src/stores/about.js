@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 // FIX: saveAboutContent ahora usa upsert con onConflict('id') y mantiene fallback opcional
 import { ref } from 'vue'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseConfigError } from '@/lib/supabase'
 
 export const useAboutStore = defineStore('about', () => {
   const hero = ref({
@@ -59,6 +59,9 @@ export const useAboutStore = defineStore('about', () => {
           // No data in Supabase – fallback to local storage
           loadFromLocal()
         }
+      } else if (supabaseConfigError) {
+        console.error('Supabase config error:', supabaseConfigError)
+        loadFromLocal()
       } else {
         // Supabase client not configured – fallback to local storage
         loadFromLocal()
@@ -93,7 +96,13 @@ export const useAboutStore = defineStore('about', () => {
 
 async function saveAboutContent(newData) {
   try {
-    if (!supabase) throw new Error('Supabase no configurado')
+    if (!supabase) {
+      if (supabaseConfigError) {
+        console.error('Supabase config error:', supabaseConfigError)
+        throw supabaseConfigError
+      }
+      throw new Error('Supabase no configurado')
+    }
 
     // Upsert using the primary key "id". Guarantees INSERT on first run and UPDATE thereafter.
     const { data, error: sbError } = await supabase
