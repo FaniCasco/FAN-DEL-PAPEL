@@ -48,6 +48,10 @@ async function submitOrder() {
 
   isSubmitting.value = true
 
+  // a) Guardar la información del cliente en la tienda de carrito.
+  cart.setCustomerInfo({ nombreApellido: nombre, telefono: tel, formaPago: formaPago.value })
+
+  // b) Insertar el pedido en Supabase llamando a ordersStore.addOrder(...)
   const result = await ordersStore.addOrder({
     nombreApellido: nombre,
     telefono: tel,
@@ -65,14 +69,28 @@ async function submitOrder() {
     notas: notas.value.trim(),
   })
 
-  isSubmitting.value = false
-
   if (!result.ok) {
+    isSubmitting.value = false
     error.value = result.error?.message || 'No se pudo registrar el pedido. Intentá de nuevo.'
     return
   }
 
-  cart.setCustomerInfo({ nombreApellido: nombre, telefono: tel, formaPago: formaPago.value })
+  // c) Cuando la inserción en Supabase sea exitosa, generar la URL de WhatsApp y abrirla automáticamente con window.open(whatsappUrl, '_blank').
+  const whatsappUrl = cart.getWhatsappUrl()
+  cart.lastWhatsappUrl = whatsappUrl
+
+  try {
+    window.open(whatsappUrl, '_blank')
+  } catch (e) {
+    console.error('Error al abrir la ventana emergente de WhatsApp:', e)
+  }
+
+  // d) Vaciar el carrito (cart.clearCart()).
+  cart.clearCart()
+
+  isSubmitting.value = false
+
+  // e) Emitir el evento @submitted para pasar a la pantalla de resumen/agradecimiento.
   emit('submitted', result.order)
 }
 </script>
@@ -114,7 +132,7 @@ async function submitOrder() {
     <p class="subtotal">Total: <strong>{{ totalPriceString }}</strong></p>
 
     <button type="button" class="submit-btn" :disabled="isSubmitting" @click="submitOrder">
-      {{ isSubmitting ? 'Registrando...' : 'Confirmar pedido' }}
+      {{ isSubmitting ? 'Procesando...' : 'Confirmar pedido por WhatsApp' }}
     </button>
 
     <p v-if="error" class="form-error">{{ error }}</p>

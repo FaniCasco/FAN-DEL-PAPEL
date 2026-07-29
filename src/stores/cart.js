@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 
 export const WHATSAPP_NUMBER = '+54 9 3564582222'
@@ -6,6 +6,7 @@ export const WHATSAPP_NUMBER = '+54 9 3564582222'
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
   const customerInfo = ref(null)
+  const lastWhatsappUrl = ref('')
 
   const storedCart = localStorage.getItem('fan_del_papel_cart')
   if (storedCart) {
@@ -73,11 +74,19 @@ export const useCartStore = defineStore('cart', () => {
     return message
   })
 
+  function getWhatsappUrl() {
+    const text = whatsappMessage.value
+    const num = (WHATSAPP_NUMBER || '').replace(/\s+/g, '')
+    return `https://wa.me/${num}?text=${encodeURIComponent(text)}`
+  }
+
   function addToCart(product, quantity = 1) {
     if (quantity <= 0) {
       console.warn(`Intento de agregar ${product.nombre} con cantidad ${quantity} no válida.`)
       return
     }
+
+    lastWhatsappUrl.value = ''
 
     const existing = items.value.find((item) => item.id === product.id)
     const currentQty = existing ? existing.quantity : 0
@@ -113,10 +122,12 @@ export const useCartStore = defineStore('cart', () => {
   return {
     items,
     customerInfo,
+    lastWhatsappUrl,
     whatsappNumber: WHATSAPP_NUMBER,
     totalItems,
     totalPrice,
     whatsappMessage,
+    getWhatsappUrl,
     addToCart,
     removeFromCart,
     updateQuantity,

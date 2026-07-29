@@ -15,15 +15,15 @@ function handleOrderSubmitted() {
 </script>
 
 <template>
-  <section class="cart-page" v-if="hasItems">
+  <section class="cart-page" v-if="hasItems || orderConfirmed">
     <RouterLink to="/catalogo" class="back-button">← Volver al catálogo</RouterLink>
 
     <div class="cart-layout">
-      <div class="items">
+      <div v-if="!orderConfirmed" class="items">
         <CartItem v-for="item in cart.items" :key="item.id" :item="item" />
       </div>
 
-      <aside class="checkout-panel">
+      <aside class="checkout-panel" :class="{ 'full-width': orderConfirmed }">
         <CheckoutForm v-if="!orderConfirmed" @submitted="handleOrderSubmitted" />
         <CartSummary v-else />
       </aside>
@@ -61,6 +61,12 @@ function handleOrderSubmitted() {
 
 .checkout-panel {
   flex: 1;
+}
+
+.checkout-panel.full-width {
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .empty-cart {
