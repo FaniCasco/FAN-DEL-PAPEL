@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useProductsStore } from '@/stores/products'
 import { useOrdersStore } from '@/stores/orders'
 import {
@@ -63,6 +63,7 @@ const saveFeedback = ref('')
 const newCategory = ref('')
 const categoryEdit = ref(null)
 const categoryEditName = ref('')
+const categoryEditInput = ref(null)
 const categoryError = ref('')
 const selectedCategoryForSubcategories = ref(null)
 const newSubcategory = ref('')
@@ -437,6 +438,10 @@ function editCategory(category) {
   categoryEdit.value = category
   categoryEditName.value = category
   categoryError.value = ''
+  newCategory.value = ''
+  nextTick(() => {
+    categoryEditInput.value?.focus()
+  })
 }
 
 function cancelCategoryEdit() {
@@ -582,8 +587,8 @@ async function updateCategoryName() {
 
         <section class="category-manager">
           <h3>Categorías</h3>
-          <div class="category-actions">
-            <input v-model="newCategory" placeholder="Nueva categoría" />
+          <div v-if="!categoryEdit" class="category-actions">
+            <input v-model="newCategory" placeholder="Nueva categoría" @keydown.enter.prevent="addCategory" />
             <button type="button" class="primary" @click="addCategory">Agregar</button>
           </div>
           <div class="category-list-admin">
@@ -611,10 +616,10 @@ async function updateCategoryName() {
           <div v-if="categoryEdit" class="category-edit-form">
             <label>
               Editar categoría:
-              <input v-model="categoryEditName" />
+              <input ref="categoryEditInput" v-model="categoryEditName" @keydown.enter.prevent="updateCategoryName" />
             </label>
             <div class="category-edit-actions">
-              <button type="button" class="primary" @click="updateCategoryName">Guardar</button>
+              <button type="button" class="primary" @click="updateCategoryName">Guardar cambios</button>
               <button type="button" class="ghost" @click="cancelCategoryEdit">Cancelar</button>
             </div>
           </div>
