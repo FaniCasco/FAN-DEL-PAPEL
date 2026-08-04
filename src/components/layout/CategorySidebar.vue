@@ -1,45 +1,55 @@
 <template>
-  <aside class="category-sidebar">
-    <div class="sidebar-heading">
-      <p>CATEGORIAS</p>
-    </div>
-
+  <div class="sidebar-shell">
     <button
-      class="category-button"
-      :class="{ active: activeCategory === 'Todas' }"
-      @click="selectCategory('Todas')"
+      v-if="isMobile && !shouldShowSidebar"
+      class="mobile-sidebar-toggle"
+      @click="isMenuOpen = true"
     >
-      Todas
+      Ver categorías
     </button>
 
-    <nav class="categories-list">
-      <div v-for="group in categoryGroups" :key="group.value" class="category-group">
-        <button
-          class="category-button"
-          :class="{ active: activeCategory === group.value }"
-          @click="selectCategory(group.value)"
-        >
-          {{ group.label }}
-        </button>
-
-        <div v-if="activeCategory === group.value && group.subcategories.length" class="subcategory-list">
-          <button
-            v-for="subcategory in group.subcategories"
-            :key="subcategory"
-            class="subcategory-button"
-            :class="{ active: activeSubcategory === subcategory }"
-            @click="selectSubcategory(subcategory)"
-          >
-            {{ subcategory }}
-          </button>
-        </div>
+    <aside v-if="shouldShowSidebar" class="category-sidebar">
+      <div class="sidebar-heading">
+        <p>CATEGORIAS</p>
       </div>
-    </nav>
-  </aside>
+
+      <button
+        class="category-button"
+        :class="{ active: activeCategory === 'Todas' }"
+        @click="selectCategory('Todas')"
+      >
+        Todas
+      </button>
+
+      <nav class="categories-list">
+        <div v-for="group in categoryGroups" :key="group.value" class="category-group">
+          <button
+            class="category-button"
+            :class="{ active: activeCategory === group.value }"
+            @click="selectCategory(group.value)"
+          >
+            {{ group.label }}
+          </button>
+
+          <div v-if="activeCategory === group.value && group.subcategories.length" class="subcategory-list">
+            <button
+              v-for="subcategory in group.subcategories"
+              :key="subcategory"
+              class="subcategory-button"
+              :class="{ active: activeSubcategory === subcategory }"
+              @click="selectSubcategory(subcategory)"
+            >
+              {{ subcategory }}
+            </button>
+          </div>
+        </div>
+      </nav>
+    </aside>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductsStore } from '@/stores/products'
 
@@ -49,6 +59,29 @@ const productsStore = useProductsStore()
 
 const activeCategory = computed(() => String(route.query.category || 'Todas'))
 const activeSubcategory = computed(() => String(route.query.subcategory || 'Todas'))
+const isMobile = ref(false)
+const isMenuOpen = ref(false)
+
+const shouldShowSidebar = computed(() => {
+  if (!isMobile.value) return true
+  return isMenuOpen.value || activeCategory.value === 'Todas'
+})
+
+function updateIsMobile() {
+  isMobile.value = window.innerWidth <= 768
+  if (!isMobile.value) {
+    isMenuOpen.value = true
+  }
+}
+
+onMounted(() => {
+  updateIsMobile()
+  window.addEventListener('resize', updateIsMobile)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateIsMobile)
+})
 
 const categoryGroups = computed(() => {
   const categories = productsStore.categories
@@ -66,10 +99,12 @@ const categoryGroups = computed(() => {
 })
 
 function selectCategory(category: string) {
+  isMenuOpen.value = false
   router.push({ name: 'Catalog', query: { category, subcategory: 'Todas' } })
 }
 
 function selectSubcategory(subcategory: string) {
+  isMenuOpen.value = false
   router.push({
     name: 'Catalog',
     query: {
@@ -81,6 +116,14 @@ function selectSubcategory(subcategory: string) {
 </script>
 
 <style scoped>
+.sidebar-shell {
+  width: auto;
+}
+
+.mobile-sidebar-toggle {
+  display: none;
+}
+
 .category-sidebar {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
@@ -98,6 +141,26 @@ function selectSubcategory(subcategory: string) {
 }
 
 @media (max-width: 768px) {
+  .sidebar-shell {
+    width: 100%;
+  }
+
+  .mobile-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-weight: 700;
+    font-family: var(--font-body);
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+
   .category-sidebar {
     position: static;
     width: 100%;
