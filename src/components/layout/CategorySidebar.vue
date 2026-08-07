@@ -23,21 +23,33 @@
 
       <nav class="categories-list">
         <div v-for="group in categoryGroups" :key="group.value" class="category-group">
-          <button
-            class="category-button"
-            :class="{ active: activeCategory === group.value }"
-            @click="selectCategory(group.value)"
-          >
-            <span>{{ group.label }}</span>
-            <svg 
-              v-if="group.subcategories.length"
-              class="chevron" 
-              :class="{ expanded: expandedCategory === group.value }"
-              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+          <div class="category-row">
+            <button
+              class="category-button"
+              :class="{ active: activeCategory === group.value }"
+              @click="selectCategory(group.value)"
             >
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
+              <span>{{ group.label }}</span>
+            </button>
+
+            <button
+              v-if="group.subcategories.length"
+              type="button"
+              class="category-toggle"
+              :class="{ active: activeCategory === group.value }"
+              :aria-expanded="expandedCategory === group.value"
+              :aria-label="`Mostrar subcategorías de ${group.label}`"
+              @click="toggleCategory(group.value)"
+            >
+              <svg
+                class="chevron"
+                :class="{ expanded: expandedCategory === group.value }"
+                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+              >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
 
           <div v-if="expandedCategory === group.value && group.subcategories.length" class="subcategory-list">
             <button
@@ -45,7 +57,7 @@
               :key="subcategory"
               class="subcategory-button"
               :class="{ active: activeSubcategory === subcategory }"
-              @click="selectSubcategory(subcategory)"
+              @click="selectSubcategory(subcategory, group.value)"
             >
               {{ subcategory }}
             </button>
@@ -111,24 +123,25 @@ function selectCategory(category: string) {
   const group = categoryGroups.value.find(g => g.value === category)
   const hasSubcategories = group && group.subcategories && group.subcategories.length > 0
 
-  if (!hasSubcategories) {
-    isMenuOpen.value = false
+  if (hasSubcategories) {
+    toggleCategory(category)
+    return
   }
 
-  if (expandedCategory.value === category) {
-    expandedCategory.value = null
-  } else {
-    expandedCategory.value = category
-  }
+  isMenuOpen.value = false
   router.push({ name: 'Catalog', query: { category, subcategory: 'Todas' } })
 }
 
-function selectSubcategory(subcategory: string) {
+function toggleCategory(category: string) {
+  expandedCategory.value = expandedCategory.value === category ? null : category
+}
+
+function selectSubcategory(subcategory: string, category: string) {
   isMenuOpen.value = false
   router.push({
     name: 'Catalog',
     query: {
-      category: activeCategory.value === 'Todas' ? 'Todas' : activeCategory.value,
+      category,
       subcategory,
     },
   })
@@ -214,7 +227,7 @@ function selectSubcategory(subcategory: string) {
 }
 
 .category-button {
-  width: 100%;
+  flex: 1;
   text-align: left;
   border: none;
   background: transparent;
@@ -229,6 +242,34 @@ function selectSubcategory(subcategory: string) {
   font-family: var(--font-body);
 }
 
+.category-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.category-toggle {
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #2a2320;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.category-toggle:hover {
+  background: rgba(248, 121, 159, 0.05);
+}
+
+.category-button.active,
+.category-toggle.active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
 .category-button:hover {
   background: rgba(248, 121, 159, 0.05);
 }
@@ -241,6 +282,7 @@ function selectSubcategory(subcategory: string) {
 .subcategory-list {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 0.25rem;
   padding-left: 0.8rem;
   margin-left: 0.8rem;
@@ -250,6 +292,9 @@ function selectSubcategory(subcategory: string) {
 
 .subcategory-button {
   width: 100%;
+  align-self: stretch;
+  display: flex;
+  justify-content: flex-start;
   text-align: left;
   border: none;
   background: transparent;
