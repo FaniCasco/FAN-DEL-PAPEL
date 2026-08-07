@@ -103,12 +103,13 @@ const filteredProducts = computed(() => {
 .subtitle {
   margin: 4px 0 0;
   font-size: 1.1rem;
-  color: var(--color-text-muted);
+  color: var(--color-text);
+  font-weight: 700;
 }
 
 .results-count {
-  color: var(--color-text-muted);
-  font-weight: 500;
+  color: var(--color-text);
+  font-weight: 700;
   font-size: 0.95rem;
 }
 

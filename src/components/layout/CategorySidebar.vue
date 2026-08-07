@@ -190,6 +190,7 @@ function selectSubcategory(subcategory: string, category: string) {
     font-family: var(--font-body);
     cursor: pointer;
     margin-bottom: 8px;
+    margin-top: 12px;
   }
 
   .category-sidebar {
