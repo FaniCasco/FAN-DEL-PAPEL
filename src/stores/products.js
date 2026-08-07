@@ -5,15 +5,6 @@ import { supabase, supabaseConfigError } from '@/lib/supabase'
 const CATEGORY_STORAGE_KEY = 'fan_del_papel_categories'
 const SUBCATEGORY_STORAGE_KEY = 'fan_del_papel_subcategories'
 
-const DEFAULT_CATEGORIES = [
- 
-  'Sobres chicos + cartas',
-  'Sobres grandes + cartas',
-  'Cartas simples',
-  'Cuadernillos',
-  'Cuadernillos regional',
-]
-
 const hasWindow = () => typeof window !== 'undefined'
 
 const safeLocalStorageSet = (key, value) => {
@@ -127,7 +118,7 @@ const buildProductRow = (payload = {}, current = {}) => {
 
 export const useProductsStore = defineStore('products', () => {
   const products = ref([])
-  const categoryList = ref([...DEFAULT_CATEGORIES])
+  const categoryList = ref([])
   const subcategoryMap = ref({})
   const isLoaded = ref(false)
 
@@ -137,7 +128,7 @@ export const useProductsStore = defineStore('products', () => {
     const fromProducts = products.value
       .map((product) => product.categoria)
       .filter(Boolean)
-    categoryList.value = normalizeCategoryList([...categoryList.value, ...fromProducts])
+    categoryList.value = normalizeCategoryList(fromProducts)
   }
 
   const syncSubcategoryMapFromProducts = () => {
@@ -168,7 +159,7 @@ export const useProductsStore = defineStore('products', () => {
     if (Array.isArray(savedCategories) && savedCategories.length) {
       categoryList.value = normalizeCategoryList(savedCategories)
     } else {
-      categoryList.value = normalizeCategoryList([...DEFAULT_CATEGORIES])
+      categoryList.value = []
     }
 
     if (savedSubcategories && typeof savedSubcategories === 'object') {
@@ -487,7 +478,7 @@ export const useProductsStore = defineStore('products', () => {
     }
 
     products.value = []
-    categoryList.value = [...DEFAULT_CATEGORIES]
+    categoryList.value = []
     subcategoryMap.value = {}
     persistCategories()
     persistSubcategories()

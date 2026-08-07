@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 
-export const WHATSAPP_NUMBER = '+54 9 3564582222'
+export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '+54 9 3564582222'
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
