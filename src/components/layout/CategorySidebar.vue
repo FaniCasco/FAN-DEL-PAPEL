@@ -28,10 +28,18 @@
             :class="{ active: activeCategory === group.value }"
             @click="selectCategory(group.value)"
           >
-            {{ group.label }}
+            <span>{{ group.label }}</span>
+            <svg 
+              v-if="group.subcategories.length"
+              class="chevron" 
+              :class="{ expanded: expandedCategory === group.value }"
+              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+            >
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
           </button>
 
-          <div v-if="activeCategory === group.value && group.subcategories.length" class="subcategory-list">
+          <div v-if="expandedCategory === group.value && group.subcategories.length" class="subcategory-list">
             <button
               v-for="subcategory in group.subcategories"
               :key="subcategory"
@@ -59,6 +67,7 @@ const productsStore = useProductsStore()
 
 const activeCategory = computed(() => String(route.query.category || 'Todas'))
 const activeSubcategory = computed(() => String(route.query.subcategory || 'Todas'))
+const expandedCategory = ref<string | null>(activeCategory.value === 'Todas' ? null : activeCategory.value)
 const isMobile = ref(false)
 const isMenuOpen = ref(false)
 
@@ -99,7 +108,18 @@ const categoryGroups = computed(() => {
 })
 
 function selectCategory(category: string) {
-  isMenuOpen.value = false
+  const group = categoryGroups.value.find(g => g.value === category)
+  const hasSubcategories = group && group.subcategories && group.subcategories.length > 0
+
+  if (!hasSubcategories) {
+    isMenuOpen.value = false
+  }
+
+  if (expandedCategory.value === category) {
+    expandedCategory.value = null
+  } else {
+    expandedCategory.value = category
+  }
   router.push({ name: 'Catalog', query: { category, subcategory: 'Todas' } })
 }
 
@@ -125,10 +145,8 @@ function selectSubcategory(subcategory: string) {
 }
 
 .category-sidebar {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: #ffffff;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 5px;
   padding: 14px;
   box-shadow: var(--shadow-sm);
@@ -195,8 +213,7 @@ function selectSubcategory(subcategory: string) {
   font-family: var(--font-title);
 }
 
-.category-button,
-.subcategory-button {
+.category-button {
   width: 100%;
   text-align: left;
   border: none;
@@ -212,8 +229,7 @@ function selectSubcategory(subcategory: string) {
   font-family: var(--font-body);
 }
 
-.category-button:hover,
-.subcategory-button:hover {
+.category-button:hover {
   background: rgba(248, 121, 159, 0.05);
 }
 
@@ -225,15 +241,57 @@ function selectSubcategory(subcategory: string) {
 .subcategory-list {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  padding-left: 0.5rem;
+  gap: 0.25rem;
+  padding-left: 0.8rem;
+  margin-left: 0.8rem;
   margin-top: 4px;
+  border-left: 2px solid rgba(0, 0, 0, 0.06);
+}
+
+.subcategory-button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.45rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6a6461;
+  font-size: 0.9em;
+  transition: var(--transition-smooth);
+  font-family: var(--font-body);
+}
+
+.subcategory-button:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #2a2320;
 }
 
 .subcategory-button.active {
-  background: rgba(248, 121, 159, 0.1);
   color: var(--color-primary);
   font-weight: 600;
+  position: relative;
+}
+
+.subcategory-button.active::before {
+  content: '';
+  position: absolute;
+  left: -0.8rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--color-primary);
+}
+
+.chevron {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s ease;
+  opacity: 0.6;
+}
+
+.chevron.expanded {
+  transform: rotate(180deg);
 }
 
 .category-group {
